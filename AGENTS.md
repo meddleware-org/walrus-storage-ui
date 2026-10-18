@@ -35,7 +35,7 @@ docker build \
 
 ## Version
 
-Current: `0.1.0` (reset on rename from `@meddleware/walrus-relay-app`).
+The version is `package.json`'s; release notes are in `CHANGELOG.md`.
 
 ## Relation to walrus-relay
 

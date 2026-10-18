@@ -16,7 +16,6 @@
 #   VITE_WALRUS_RELAY_MAINNET          — operator relay URL for mainnet (optional)
 #   VITE_ACCESS_GATE_ID_{NET}          — operator's Gate shared object ID (from create_gate)
 #   VITE_ACCESS_GATE_SOULBOUND_{NET}   — "true" if soulbound (optional, default false)
-#   VITE_ACCESS_GATE_PRICE_MIST_{NET}  — purchase price in MIST (optional, default 0)
 #   VITE_UPLOAD_RELAY_MAX_TIP_MIST     — max relay tip cap in MIST (optional, default 50000000)
 # packageId and platformConfigId are hardcoded in @meddleware/walrus-relay constants.
 # Content-Security-Policy served by static-server (verified 2026-09-30: production build loaded in
@@ -40,7 +39,6 @@ ARG VITE_WALRUS_RELAY_TESTNET
 ARG VITE_WALRUS_RELAY_MAINNET
 ARG VITE_ACCESS_GATE_ID_TESTNET
 ARG VITE_ACCESS_GATE_SOULBOUND_TESTNET
-ARG VITE_ACCESS_GATE_PRICE_MIST_TESTNET
 ARG VITE_ACCESS_GATE_ID_MAINNET
 ARG VITE_UPLOAD_RELAY_MAX_TIP_MIST
 
@@ -49,7 +47,6 @@ ENV VITE_NETWORK=${VITE_NETWORK} \
     VITE_WALRUS_RELAY_MAINNET=${VITE_WALRUS_RELAY_MAINNET} \
     VITE_ACCESS_GATE_ID_TESTNET=${VITE_ACCESS_GATE_ID_TESTNET} \
     VITE_ACCESS_GATE_SOULBOUND_TESTNET=${VITE_ACCESS_GATE_SOULBOUND_TESTNET} \
-    VITE_ACCESS_GATE_PRICE_MIST_TESTNET=${VITE_ACCESS_GATE_PRICE_MIST_TESTNET} \
     VITE_ACCESS_GATE_ID_MAINNET=${VITE_ACCESS_GATE_ID_MAINNET} \
     VITE_UPLOAD_RELAY_MAX_TIP_MIST=${VITE_UPLOAD_RELAY_MAX_TIP_MIST}
 
@@ -59,7 +56,7 @@ RUN npm run build && npm run licenses
 # static-server is a minimal Go binary image — no shell, no package manager.
 # SPA_FALLBACK serves index.html for any extensionless path (Vue Router history mode).
 # CACHE_IMMUTABLE_PREFIX matches the /assets/ directory Vite emits with content hashes.
-FROM quay.io/meddleware-org/static-server:0.1.7@sha256:2e2273115b7575acbeb01c6d75f867be67125405f1bda5d956ae512d13c92379
+FROM quay.io/meddleware-org/static-server:0.1.8@sha256:e32cf42b182d270c4ef57181e5588e7df454a42cac66e83d8ae59d9c7b7c4000
 ARG CSP
 ENV CONTENT_SECURITY_POLICY="${CSP}"
 

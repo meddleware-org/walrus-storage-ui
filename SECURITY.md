@@ -18,9 +18,10 @@ It does not cover:
 These invariants are load-bearing. A report demonstrating that any is violated is in scope and
 treated as high severity:
 
-1. **The authoritative upload-relay tip cap is wired.** `VITE_UPLOAD_RELAY_MAX_TIP_MIST` is passed to
-   `createWalrusClient` so a malicious relay cannot induce an unbounded tip (the relay UI library has
-   no clamp of its own).
+1. **The authoritative upload-relay tip cap is wired.** `VITE_UPLOAD_RELAY_MAX_TIP_MIST` is passed as
+   `maxTipMist` to the flow's `runBlobUpload` (`@meddleware/walrus-client/flow`), which hands it to the
+   Walrus client as the relay-tip ceiling, so a malicious relay cannot induce an unbounded tip (the relay
+   UI library only shows the tip; the ceiling is enforced here and in the client).
 2. **No secret is a `VITE_*` value.** All `VITE_*` config (network, relay URLs, docs URL, tip cap) is
    non-secret and is baked into the bundle at build time; no key or token is ever inlined.
 3. **No dynamic HTML sinks.** Blob ids, relay-supplied strings, and filenames render as text; URLs use

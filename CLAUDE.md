@@ -38,8 +38,9 @@ monorepo; extracted to its own repo `walrus-ui` v0.1.0. Consumes `@meddleware/wa
   wallet-standard implementation.
 - **Commission enforcement is in the library.** `accessGate()` in `src/config.ts` builds the gate
   with `relayGateConfig` from `@meddleware/walrus-relay`, which takes the package and
-  `PlatformConfig` from the published deployment. Operators set only the gate id, soulbound flag and
-  price. Do not override the package or PlatformConfig here.
+  `PlatformConfig` from the published deployment. Operators set only the gate id and soulbound flag; the price and payees are
+  read from the chain and shown by `AccessGateCta` before the wallet opens (there is no price variable).
+  Do not override the package or PlatformConfig here. `useAccessGate` throws for any other gate.
 
 ## Env var: uploadRelayMaxTipMist
 

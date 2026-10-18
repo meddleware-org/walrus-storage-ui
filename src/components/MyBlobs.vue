@@ -7,6 +7,7 @@ import walrusWasmUrl from '@mysten/walrus-wasm/web/walrus_wasm_bg.wasm?url'
 import type { Executor } from '../wallet.js'
 import { walrusNetwork, walruscanBlobUrl } from '../config.js'
 import { useOwnedBlobs } from '../composables/useOwnedBlobs.js'
+import { useExtendQuotes } from '../composables/useExtendQuotes.js'
 import { groupBlobs, expiryLabel, maxExtendableEpochs, type BlobGroup } from '../blob-groups.js'
 import {
   pendingCertifyKey,
@@ -49,7 +50,6 @@ const pending = ref<Record<string, PendingCertify>>({})
 const busy = ref<string | null>(null)
 const actionStatus = ref<Record<string, string>>({})
 const extendAmount = ref<Record<string, number>>({})
-const extendCostFrost = ref<Record<string, bigint | null>>({})
 
 const MAX = MAX_SINGLE_RESERVATION_EPOCHS
 
@@ -104,35 +104,39 @@ function refreshPending(): void {
 }
 
 // ── Extend ──────────────────────────────────────────────────────────────────
-const extendReq: Record<string, number> = {}
+// Extend adds storage only (no one-time write cost), so the quote prices the `storageCost` component.
+async function estimateExtendCost(size: number, epochs: number): Promise<bigint | null> {
+  const { createWalrusClient, estimateStorageCost } = await import('@meddleware/walrus-client')
+  const walrusClient = createWalrusClient({ network: currentNetwork(), wasmUrl: walrusWasmUrl })
+  return (await estimateStorageCost(walrusClient, size, epochs)).storageCost
+}
+const extendQuotes = useExtendQuotes(estimateExtendCost)
 
-// User picked an amount → clamp and (re)price it. We estimate only on interaction, not for every row
-// on load, to avoid spinning up a Walrus client per blob.
+// User picked an amount → clamp and (re)price it. Only the picked amount is priced here, not every
+// row on load, to avoid spinning up a Walrus client per blob; a row that was never touched is priced
+// when Extend is first pressed (see `extendBlob`), before the wallet opens.
 function setExtendAmount(blob: OwnedBlob, value: number | string): void {
   const max = maxAddable(blob.endEpoch)
   const v = Math.min(max, Math.max(1, Math.floor(Number(value) || 1)))
   extendAmount.value = { ...extendAmount.value, [blob.objectId]: v }
-  void estimateExtend(blob, v)
+  void extendQuotes.price(blob.objectId, blob.size, v)
 }
-async function estimateExtend(blob: OwnedBlob, epochs: number): Promise<void> {
-  const id = blob.objectId
-  const token = (extendReq[id] = (extendReq[id] ?? 0) + 1)
-  try {
-    const { createWalrusClient, estimateStorageCost } = await import('@meddleware/walrus-client')
-    const walrusClient = createWalrusClient({ network: currentNetwork(), wasmUrl: walrusWasmUrl })
-    // Extend adds storage only (no one-time write cost), so price the `storageCost` component.
-    const cost = await estimateStorageCost(walrusClient, blob.size, epochs)
-    if (extendReq[id] === token) {
-      extendCostFrost.value = { ...extendCostFrost.value, [id]: cost.storageCost }
-    }
-  } catch {
-    if (extendReq[id] === token) extendCostFrost.value = { ...extendCostFrost.value, [id]: null }
-  }
+
+/** What the row shows beside the Extend button for its current amount. */
+function extendQuoteLabel(blob: OwnedBlob): string {
+  const epochs = extendAmount.value[blob.objectId]
+  const q = extendQuotes.quoteFor(blob.objectId, epochs)
+  if (q?.state === 'ready') return `≈${formatCoinAmount(q.costFrost, 'WAL')} for +${q.epochs} epochs`
+  if (q?.state === 'unavailable') return 'price unavailable'
+  return extendQuotes.pricing.value[blob.objectId] === epochs ? 'pricing…' : ''
 }
 
 async function extendBlob(blob: OwnedBlob): Promise<void> {
   const epochs = extendAmount.value[blob.objectId]
   if (!epochs || busy.value) return
+  // The wallet opens only for an amount whose cost the user has been shown. The seeded default has
+  // no quote yet: price it now, show it, and let the user press Extend again to confirm.
+  if (!(await extendQuotes.shownBeforeSigning(blob.objectId, blob.size, epochs))) return
   busy.value = blob.objectId
   actionStatus.value = { ...actionStatus.value, [blob.objectId]: 'Building transaction…' }
   try {
@@ -143,6 +147,7 @@ async function extendBlob(blob: OwnedBlob): Promise<void> {
     actionStatus.value = { ...actionStatus.value, [blob.objectId]: 'Approve in wallet…' }
     const { digest } = await executor.signAndExecute(tx)
     await executor.waitForTransaction(digest)
+    extendQuotes.clear(blob.objectId)
     actionStatus.value = { ...actionStatus.value, [blob.objectId]: `Extended ✓ (${digest.slice(0, 8)}…)` }
     await refresh()
   } catch (e) {
@@ -298,10 +303,10 @@ watch(
                   >
                     Max
                   </button>
-                  <button type="button" :disabled="!!busy" @click="extendBlob(g.representative)">Extend</button>
-                  <span v-if="extendCostFrost[g.representative.objectId] != null" class="est">
-                    ≈{{ formatCoinAmount(extendCostFrost[g.representative.objectId]!, 'WAL') }}
-                  </span>
+                  <button type="button" :disabled="!!busy" @click="extendBlob(g.representative)">
+                    {{ extendQuotes.quoteFor(g.representative.objectId, extendAmount[g.representative.objectId]) ? 'Extend' : 'Show cost' }}
+                  </button>
+                  <span class="est" aria-live="polite">{{ extendQuoteLabel(g.representative) }}</span>
                 </span>
               </template>
             </td>
@@ -355,11 +360,11 @@ watch(
   font-size: 1.2rem;
 }
 .hint {
-  color: var(--mw-color-text-muted, #888);
+  color: var(--muted);
   font-size: 0.9rem;
 }
 .err {
-  color: var(--mw-color-danger, #c00);
+  color: var(--danger);
   font-size: 0.9rem;
 }
 .blob-table {
@@ -371,21 +376,21 @@ watch(
 .blob-table td {
   text-align: left;
   padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid var(--mw-color-border, #ddd);
+  border-bottom: 1px solid var(--border);
   vertical-align: top;
 }
 .blob-table th {
   font-weight: 600;
-  color: var(--mw-color-text-muted, #888);
+  color: var(--muted);
 }
 .blob-table tr.warn td {
-  background: color-mix(in srgb, var(--mw-color-warning, #f90) 8%, transparent);
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
 }
 .blob-table tr.highlight td {
-  background: color-mix(in srgb, var(--accent, #6366f1) 14%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .copy-row td {
-  background: color-mix(in srgb, var(--mw-color-text-muted, #888) 6%, transparent);
+  background: color-mix(in srgb, var(--muted) 6%, transparent);
   font-size: 0.82rem;
 }
 .copies-toggle {
@@ -415,23 +420,23 @@ watch(
 }
 .est {
   font-size: 0.78rem;
-  color: var(--mw-color-text-muted, #888);
+  color: var(--muted);
 }
 .at-max {
   font-size: 0.8rem;
-  color: var(--mw-color-text-muted, #888);
+  color: var(--muted);
 }
 .act-status {
   font-size: 0.85rem;
-  color: var(--mw-color-text-muted, #888);
+  color: var(--muted);
 }
 .certify-btn {
-  border-color: var(--accent, #6366f1);
-  color: var(--accent, #6366f1);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .pending-badge {
   font-size: 0.78rem;
-  color: var(--accent, #6366f1);
+  color: var(--accent);
   font-weight: 600;
 }
 </style>

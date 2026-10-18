@@ -9,6 +9,7 @@ import {
   WalrusUpload,
   AccessGateCta,
   useAccessGate,
+  type WalrusNetwork,
 } from '@meddleware/walrus-relay'
 import { AppTabNav, CopyableAddress, ExplorerLink, UiNotice, UiTabPanel, UiToolIntro, suiExplorerUrl, safeHref, type AppTab } from '@meddleware/ui'
 // Lightweight URL import — just the wasm asset URL (does not pull the walrus client).
@@ -45,9 +46,16 @@ const { account, signPersonalMessage, buildExecutor } = useWallet()
 
 // One access-gate state per Walrus network (the gate is a per-network setting); the active
 // network's is used. Each is inert until an ownership check runs.
+// `useAccessGate` throws for a gate that is not the published deployment on its network;
+// `accessGate()` only returns such configs (or null, ungated). The shared client serves the active
+// network only, so a state for another network refuses to read rather than reading the wrong chain.
+function gateClient(net: WalrusNetwork) {
+  if (net !== network.value) throw new Error(`No Sui client for ${net} while ${network.value} is active.`)
+  return getSuiClient()
+}
 const gateStates = {
-  testnet: useAccessGate({ gate: accessGate('testnet'), getClient: () => getSuiClient() }),
-  mainnet: useAccessGate({ gate: accessGate('mainnet'), getClient: () => getSuiClient() }),
+  testnet: useAccessGate({ network: 'testnet', gate: accessGate('testnet'), getClient: gateClient }),
+  mainnet: useAccessGate({ network: 'mainnet', gate: accessGate('mainnet'), getClient: gateClient }),
 }
 /** The active network's gate state (testnet's while the view is hidden on a non-Walrus network). */
 const gateState = computed(() => gateStates[walrusNetwork.value ?? 'testnet'])
@@ -75,6 +83,8 @@ async function onPurchase(): Promise<void> {
   try {
     const executor = await buildExecutor()
     await gateState.value.purchase(executor, account.value.address)
+  } catch {
+    // The reason is published in `purchaseError` and shown by the prompt.
   } finally {
     purchasing.value = false
   }
@@ -237,9 +247,19 @@ function onSettled(): void {
               :gate-configured="gateState.gateConfigured"
               :has-access="gateState.hasAccess.value"
               :busy="purchasing"
-              :price-mist="gateState.gate?.priceMist ?? null"
+              :terms="gateState.terms.value"
+              :terms-error="gateState.termsError.value"
+              :purchase-error="gateState.purchaseError.value"
               @purchase="onPurchase"
             />
+            <button
+              v-if="gateState.termsError.value && !gateState.termsLoading.value"
+              type="button"
+              class="retry-terms"
+              @click="gateState.loadTerms()"
+            >
+              Read the price again
+            </button>
           </div>
 
           <!-- Ownership check still in flight. -->
@@ -266,7 +286,8 @@ function onSettled(): void {
             <WalrusUpload
               :hosts="relayHosts(walrusNetwork)"
               :connected="!!account"
-              :access="{ gateConfigured: gateState.gateConfigured, hasAccess: gateState.hasAccess }"
+              :access="{ gateConfigured: gateState.gateConfigured, hasAccess: gateState.hasAccess, singleUse: gateState.singleUse }"
+              :session-key="`${walrusNetwork}:${account?.address ?? ''}`"
               :perform-upload="performUpload"
               :estimate-storage-cost="estimateUploadStorageCost"
               @uploaded="onUploaded"

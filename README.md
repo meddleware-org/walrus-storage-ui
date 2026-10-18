@@ -36,7 +36,6 @@ All `VITE_*` vars are baked into the static bundle at build time.
 | `VITE_WALRUS_RELAY_MAINNET` | Public Mysten relay | Operator relay URL for mainnet |
 | `VITE_ACCESS_GATE_ID_TESTNET` | — | Gate object ID (testnet; unset = no gate) |
 | `VITE_ACCESS_GATE_SOULBOUND_TESTNET` | `false` | `true` if NFTs are soulbound |
-| `VITE_ACCESS_GATE_PRICE_MIST_TESTNET` | `0` | Purchase price in MIST |
 | `VITE_ACCESS_GATE_ID_MAINNET` | — | Gate object ID (mainnet) |
 | `VITE_UPLOAD_RELAY_MAX_TIP_MIST` | `50000000` | Max relay tip cap in MIST (0.05 SUI) |
 
@@ -54,7 +53,6 @@ docker build \
   --build-arg VITE_NETWORK=testnet \
   --build-arg VITE_WALRUS_RELAY_TESTNET=https://sui-walrus-relay.example.com \
   --build-arg VITE_ACCESS_GATE_ID_TESTNET=0x... \
-  --build-arg VITE_ACCESS_GATE_PRICE_MIST_TESTNET=100000000 \
   -t walrus-ui:latest .
 ```
 

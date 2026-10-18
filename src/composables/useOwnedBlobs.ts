@@ -20,18 +20,41 @@ const error = ref<string | null>(null)
 /** `<network>|<address>` the current `blobs` were fetched for; `null` until a successful load. */
 const loadedFor = ref<string | null>(null)
 
+/** Counts calls that decide what the list shows; a result is applied only if it is still the latest. */
+let latest = 0
+/** Key of the load in flight (the latest one), or `null` when none is. */
+let inflightKey: string | null = null
+
+/** Drop whatever load is in flight: its result will be discarded and it no longer owns `loading`. */
+function supersede(): void {
+  latest++
+  inflightKey = null
+  loading.value = false
+}
+
 async function load(address: string | null, opts: { force?: boolean } = {}): Promise<void> {
   const net = walrusNetwork.value
   if (!address || !net) {
+    supersede()
     blobs.value = []
     loadedFor.value = null
     return
   }
   // Skip refetch when we already have this address's list and the last load succeeded.
   const key = `${net}|${address}`
-  if (!opts.force && loadedFor.value === key && error.value === null) return
-  if (loadedFor.value !== key) blobs.value = [] // never show another network's or wallet's list
+  if (!opts.force && loadedFor.value === key && error.value === null) {
+    // Switching back to a list we hold: a slower load for another account or network must not land.
+    if (inflightKey !== null && inflightKey !== key) supersede()
+    return
+  }
+  if (loadedFor.value !== key) {
+    // Never show another network's or wallet's list; and a cleared list must not read as loaded.
+    blobs.value = []
+    loadedFor.value = null
+  }
 
+  const mine = ++latest
+  inflightKey = key
   loading.value = true
   error.value = null
   try {
@@ -45,13 +68,20 @@ async function load(address: string | null, opts: { force?: boolean } = {}): Pro
       walrusClient.walrus.systemState(),
       fetchOwnedWalrusBlobs(suiClient, walrusClient, address),
     ])
+    // A newer load (or a switch) took over while this one was in flight: its answer is for another
+    // account or network, so drop it without touching the list, the error or `loading`.
+    if (mine !== latest) return
     currentEpoch.value = Number(sys.committee.epoch)
     blobs.value = fetched.sort((a: OwnedBlob, b: OwnedBlob) => a.endEpoch - b.endEpoch)
     loadedFor.value = key
   } catch (e) {
+    if (mine !== latest) return
     error.value = e instanceof Error ? e.message : String(e)
   } finally {
-    loading.value = false
+    if (mine === latest) {
+      loading.value = false
+      inflightKey = null
+    }
   }
 }
 

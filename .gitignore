@@ -1,4 +1,9 @@
 node_modules/
+
+# Local env files (Vite loads .env, .env.local, .env.<mode>); only the documented example is tracked
+.env*
+!.env.example
+
 dist/
 target/
 .wrangler/

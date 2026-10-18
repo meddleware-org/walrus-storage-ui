@@ -6,30 +6,30 @@
 **Template:** AUDIT_TEMPLATE.md (2026-10-08) + AUDIT_TEMPLATE_VUE.md (2026-10-08) + AUDIT_TEMPLATE_TS.md (2026-10-08) + AUDIT_TEMPLATE_SUI_CLIENT.md (2026-10-08) + AUDIT_TEMPLATE_WALRUS.md (2026-09-30) + AUDIT_TEMPLATE_IMG.md (2026-10-08)
 Not triggered: AUTH (the app holds no credential; the access proof is built and signed by walrus-client and nft-gate-client, and the persisted consume digest is a public transaction digest), SEAL, OPS (the integration workflow runs a browser smoke suite only and signs nothing on a real chain), PROXY, WORKERS, GO, RUST, SITE, PLATFORM (the cluster is audited with the workspace).
 **Sui SDK:** `@mysten/sui ^2.33.2` (installed 2.35.0, one copy; `npm ls` single version)   **Transport:** gRPC through wallet-adapter; HTTPS to relays and aggregators
-**Walrus SDK:** `@mysten/walrus ~1.2.32` (installed 1.2.34), `@mysten/walrus-wasm ~0.3.1`; uploads through `@meddleware/walrus-client/flow` 0.0.27 (lazy wasm); relay selection and the gate from `@meddleware/walrus-relay` 0.1.30
+**Walrus SDK:** `@mysten/walrus ~1.2.32` (installed 1.2.34), `@mysten/walrus-wasm ~0.3.1`; uploads through `@meddleware/walrus-client/flow` 0.0.28 (lazy wasm); relay selection and the gate from `@meddleware/walrus-relay` 0.1.31
 **Package config source:** SDK-bundled per network (`createWalrusClient({ network })`); no caller-supplied package ids; localnet shows a notice
 **Upload relays:** operator `https://sui-walrus-relay-testnet.meddleware.co.uk` (build argument `VITE_WALRUS_RELAY_TESTNET`; mainnet unset) · public fallback `https://upload-relay.{testnet,mainnet}.walrus.space`
 **Aggregator / publisher hosts:** none of the app's own; the result URL comes from walrus-client and is bound through `safeHref`; no publisher is used
 **Tip ceiling:** `VITE_UPLOAD_RELAY_MAX_TIP_MIST`, default 50 000 000 MIST (0.05 SUI, D2), passed as `maxTipMist` to the flow   **Epoch default / maximum:** the widget defaults to the single-reservation maximum (53, `max_epochs_ahead`); longer lifetimes through Extend
 **Deletable default:** permanent (D6): an explained, visible tick-box; a permanent blob cannot be removed by anyone before it expires. **Blob ownership:** the connected wallet owns the Blob on the relay path (it registers and certifies)
 **Networks:** testnet (live); mainnet when Walrus and the gate are configured; localnet shows a notice
-**On-chain packages consumed:** Walrus system objects (SDK); `access_gate` through `relayGateConfig` (access-gate-client 0.0.8 `deployments`: testnet `0xd7ddaa94…88c9`, PlatformConfig `0x3f81489d…e7b5`) with `VITE_ACCESS_GATE_ID_TESTNET` = relay gate `0x316f1bf9…faddc` (soulbound, 10 uses, 0.01 SUI; the old gate `0xfd6c3b…` is on the superseded, immutable package `0xa55789…`)
+**On-chain packages consumed:** Walrus system objects (SDK); `access_gate` through `relayGateConfig` (access-gate-client 0.0.9 `deployments`: testnet `0xd7ddaa94…88c9`, PlatformConfig `0x3f81489d…e7b5`) with `VITE_ACCESS_GATE_ID_TESTNET` = relay gate `0x316f1bf9…faddc` (soulbound, 10 uses, 0.01 SUI; the old gate `0xfd6c3b…` is on the superseded, immutable package `0xa55789…`)
 **Package manager / lockfile:** npm 11, committed (also copied into the image for SBOM tools)   **Module format / publish model:** ESM; ships source (library) + SPA image
 **Runtime targets:** browser   **Peer dependencies:** `@meddleware/wallet-adapter >=0.0.12 <0.2.0`
 **Build tool:** vite 8.3, `@vitejs/plugin-vue` 6.0.9, vue 3.5.43, vue-tsc 3.3.x, TypeScript 6.0.3, vitest 5.0.3
 **Hosting:** container image on static-server (CSP and HSTS from the server); no static-host `_headers` file
 **Embedding hosts:** the dashboard (`WalrusView`, no shell chrome; dashboard requires `^0.1.56`)
-**VITE_\* inventory:** `VITE_NETWORK` (testnet|mainnet, baked, selects the network only), `VITE_WALRUS_RELAY_{TESTNET,MAINNET}` (operator relay host, baked, per network), `VITE_UPLOAD_RELAY_MAX_TIP_MIST` (tip ceiling), `VITE_ACCESS_GATE_{ID,SOULBOUND,PRICE_MIST}_{TESTNET,MAINNET}` (the operator's gate object, soulbound flag and price; the package and PlatformConfig are never configurable), `VITE_DOCS_URL` / `VITE_DEV_URL` (footer links); all public, none secret; all listed in `.env.example` (per-network names by template)
+**VITE_\* inventory:** `VITE_NETWORK` (testnet|mainnet, baked, selects the network only), `VITE_WALRUS_RELAY_{TESTNET,MAINNET}` (operator relay host, baked, per network), `VITE_UPLOAD_RELAY_MAX_TIP_MIST` (tip ceiling), `VITE_ACCESS_GATE_{ID,SOULBOUND}_{TESTNET,MAINNET}` (the operator's gate object and soulbound flag; the package and PlatformConfig are never configurable, and the price is read from the chain since 0.1.58, so the former `…_PRICE_MIST_*` variable is gone), `VITE_DOCS_URL` / `VITE_DEV_URL` (footer links); all public, none secret; all listed in `.env.example` (per-network names by template)
 **Images:** `quay.io/meddleware-org/walrus-ui:0.1.57@sha256:631abc3a…3708` (Docker Hub mirror; cosign keyless, SPDX SBOM attestation, build provenance; verified 2026-10-09, `verify-digests.sh` 16/16)
-**Base images:** build `node:24-slim@sha256:0e0ff40c…f9b6`; runtime `quay.io/meddleware-org/static-server:0.1.7@sha256:2e227311…2379` (Go 1.26.9)
+**Base images:** build `node:24-slim@sha256:0e0ff40c…f9b6`; runtime `quay.io/meddleware-org/static-server:0.1.8@sha256:e32cf42b…4000` from 0.1.58 (the deployed 0.1.57 image carries 0.1.7, `sha256:2e227311…2379`, Go 1.26.9)
 **Runtime user:** `USER 65534:65534`   **Runtime FS:** read-only root, no writable mounts
 **Deployed by:** `post-bootstrap/walrus/overlays/testnet` (base `post-bootstrap/walrus/base/ui`); digest from `config/images.yaml`
-**Build args:** `CSP`, `VITE_NETWORK`, `VITE_WALRUS_RELAY_{TESTNET,MAINNET}`, `VITE_ACCESS_GATE_ID_{TESTNET,MAINNET}`, `VITE_ACCESS_GATE_SOULBOUND_TESTNET`, `VITE_ACCESS_GATE_PRICE_MIST_TESTNET`, `VITE_UPLOAD_RELAY_MAX_TIP_MIST` — none secret, none a test switch
+**Build args:** `CSP`, `VITE_NETWORK`, `VITE_WALRUS_RELAY_{TESTNET,MAINNET}`, `VITE_ACCESS_GATE_ID_{TESTNET,MAINNET}`, `VITE_ACCESS_GATE_SOULBOUND_TESTNET`, `VITE_UPLOAD_RELAY_MAX_TIP_MIST` — none secret, none a test switch
 **Deployment status:** npm v0.1.57 (2026-10-09); image `quay.io/meddleware-org/walrus-ui` serving `sui-walrus.meddleware.co.uk` at 0.1.57 (`sha256:631abc3a…`, deployed 2026-10-09; the live bundle carries `access_gate` `0xd7ddaa94…`, PlatformConfig `0x3f81489d…` and gate `0x316f1bf9…` only); embedded in dashboard 0.1.84 (requires `^0.1.56`)
-**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-02 · re-verified 2026-10-09
+**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-02 · re-verified 2026-10-09 · fixes 2026-10-18
 **Reviewer:** Internal review
 **Severity ceiling:** Medium — the app drives paid uploads and pass purchases with the user's wallet; it holds no keys and decides nothing on its own.
-**Status:** re-verified 2026-10-09
+**Status:** fixes for F11–F14, F16 and F18 in 0.1.58 (2026-10-18; commit pending, not yet released or deployed); re-verified 2026-10-09 at 0.1.57
 
 ---
 
@@ -61,18 +61,22 @@ Re-verified 2026-10-09 (0.1.57; 17 unit tests, type-check and all three linters 
 - The known CI gap found in the sibling web apps (the reusable `node-ci.yml` has no `npm test` step, so
   the release gate stops running the unit tests) is **not present here**: `node-ci.yml` runs `npm test`,
   the release `verify` job calls it, and the npm job runs the tests too (F6).
-- The newly applicable lens checks found defects that are **not yet fixed** (code changes are outside
-  this alignment; each is a small change for the next patch release):
-  **F11 (Low, DEFERRED)** a slower owned-blob load can overwrite a newer one after an account or network
-  switch; **F12 (Low, DEFERRED)** Extend signs the seeded default without showing its cost until the user
-  edits the amount; **F13 (Low, DEFERRED)** My Blobs styles text with `--mw-color-*` custom properties
-  that design-tokens does not define, so literal fallbacks that fail contrast in one theme each are
-  used; **F14 (Info, DEFERRED)** `.gitignore` does not ignore `.env.local`; **F18 (Info, DEFERRED)**
-  documentation drift (no `CHANGELOG.md`, a stale `SECURITY.md` sentence).
+- The newly applicable lens checks found defects, **fixed in 0.1.58 (2026-10-18; commit pending)**:
+  **F11 (Low, RESOLVED)** a slower owned-blob load could overwrite a newer one after an account or
+  network switch; **F12 (Low, RESOLVED)** Extend signed the seeded default without showing its cost;
+  **F13 (Low, RESOLVED)** My Blobs styled text with `--mw-color-*` custom properties that design-tokens
+  does not define, so literal fallbacks that fail contrast in one theme each were used; **F14 (Info,
+  RESOLVED)** `.gitignore` did not ignore `.env.local`; **F18 (Info, RESOLVED)** documentation drift
+  (no `CHANGELOG.md`, a stale `SECURITY.md` sentence, an unused dependency, a stray word in a workflow
+  message). **F16 (Low, RESOLVED)** the npm job now calls the full CI workflow.
+- 0.1.58 also adopts walrus-relay 0.1.31 (the gate is pinned to the published deployment by
+  `useAccessGate`, the price and payees are read from the chain and shown before the purchase prompt,
+  `sessionKey` resets the upload widget on an account or network change) and removes the
+  `VITE_ACCESS_GATE_PRICE_MIST_TESTNET` build argument.
 - The design-tokens F10 check (`color: var(--warning)` as text) is clean here: no `--warning` colour is
   used as text in `src/`; the tint on an expiring row is a background (F13).
-- Accepted: **F15** blanket `connect-src https:`, **F16** the npm job's gate is a subset of CI, **F17**
-  the cosign identity pins the repository not the workflow. **F7** (registry credential inventory) is a
+- Accepted: **F15** blanket `connect-src https:`, **F17** the cosign identity pins the repository not
+  the workflow. **F7** (registry credential inventory) is a
   maintainer item.
 
 Fixes in the libraries reach the app: the pending-purchase guard (walrus-relay F10), the bounded and
@@ -115,15 +119,15 @@ Critical / High / Medium / Low / Info / Positive.
 ## Scope
 
 - **In scope (0.1.57):** `src/**` (`App.vue`, `components/WalrusView.vue`, `components/MyBlobs.vue`,
-  `config.ts`, `wallet.ts`, `blob-groups.ts`, `composables/useOwnedBlobs.ts`), `index.html`, `public/`,
+  `config.ts`, `wallet.ts`, `blob-groups.ts`, `composables/useOwnedBlobs.ts`, `composables/useExtendQuotes.ts`), `index.html`, `public/`,
   `Dockerfile`, `.dockerignore`, workflows, `.github/audit-gate.mjs`, `.github/dependabot.yml`,
   `scripts/third-party-licenses.mjs`, `SECURITY.md`; the manifests in `post-bootstrap/walrus/base/ui`
   and the testnet overlay (read-only).
 - **Out of scope:** the libraries (own audits).
-- **Environment (2026-10-09):** `npm test` 17/17 (3 files, vitest 5.0.3); `vue-tsc`; stylelint, eslint
+- **Environment (2026-10-18, 0.1.58; live checks 2026-10-09):** `npm test` 39/39 (6 files, vitest 5.0.3); `vue-tsc`; stylelint, eslint
   (+ vuejs-a11y), html-validate; production build; audit gate (1 allowlisted advisory, 0 open);
-  `npm pack --dry-run` (16 files, source only); live headers and bundle of `sui-walrus.meddleware.co.uk`.
-  The repository has no `CHANGELOG.md` (the `files` list names one); `git log` carries the release history.
+  `npm pack --dry-run` (18 files, source only); Playwright smoke 3/3; live headers and bundle of `sui-walrus.meddleware.co.uk`.
+  The repository had no `CHANGELOG.md` at 0.1.57 (the `files` list named one); 0.1.58 adds it.
 
 ## Findings
 
@@ -134,8 +138,8 @@ Critical / High / Medium / Low / Info / Positive.
 **Remediation / evidence (2026-10-09):** `config.ts` `uploadRelayMaxTipMist()` (non-positive or
 unparseable values fall back to 50 000 000 MIST) is passed as `maxTipMist` to `runBlobUpload`
 (`WalrusView.vue`); walrus-client 0.0.26 checks it is a positive safe integer before any wallet prompt.
-Tested (`tests/config.test.ts`: default, override, fallback). `SECURITY.md` invariant 1 still says the
-cap is passed to `createWalrusClient` (F18).
+Tested (`tests/config.test.ts`: default, override, fallback). `SECURITY.md` invariant 1 now names `runBlobUpload`
+(F18, 0.1.58).
 
 ### F2 — Result URL bound without a scheme check
 
@@ -237,7 +241,7 @@ Dockerfile and manifests (the image scan runs at release).
 
 ### F11 — A slower owned-blob load can overwrite a newer one after a switch
 
-**Severity:** Low   **Disposition:** DEFERRED (next patch release; Section D pre-testnet "state invalidated on switch")
+**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit pending)
 **Where:** `src/composables/useOwnedBlobs.ts` (`load`), `MyBlobs.vue` (watchers on address and network)
 **Issue:** `load` captures its key (`<network>|<address>`) when it starts but, after the awaits,
 assigns `blobs`, `currentEpoch` and `loadedFor` without checking that the key is still the wanted one,
@@ -248,13 +252,17 @@ after a switch are discarded.
 **Impact:** a stale list is displayed under the wrong account or network until the next refresh.
 Display only: Extend and Certify build transactions for objects the connected wallet must own, so the
 chain refuses a wrong one. The upload path is unaffected (the widget's own state is walrus-relay F16).
-**Remediation / evidence:** keep a monotonically increasing request counter (or compare the key at the
-end of `load`) and drop the result when it no longer matches. No test covers it
-(`useOwnedBlobs.test.ts` covers the epoch source and a network change with sequential loads only).
+**Remediation / evidence (0.1.58):** `useOwnedBlobs.load` keeps a request counter: every call that
+decides what the list shows (a load, a disconnect or an unsupported network, a cache hit that leaves a
+slower load for another key behind) supersedes the one in flight, and a superseded load discards its
+list, its error and its `loading` flag. A list cleared for another key no longer reads as loaded for the
+previous one. Pinned by `tests/useOwnedBlobs.stale.test.ts` (7 tests: later account first, `loading`
+not cleared by the earlier load, earlier failure dropped, disconnect, network switch, switch back,
+same-key cache hit during a refresh); six of them fail on the 0.1.57 code.
 
 ### F12 — Extend signs the seeded default without showing its cost
 
-**Severity:** Low   **Disposition:** DEFERRED (next patch release; Section D pre-testnet "signing UX")
+**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit pending; failure text unchanged, see note)
 **Where:** `src/components/MyBlobs.vue` (`setExtendAmount`, `extendBlob`)
 **Issue:** each row's amount is seeded to +10 epochs (clamped) without pricing it; the WAL estimate is
 fetched only when the user edits the amount or presses a preset. Pressing **Extend** straight away
@@ -263,12 +271,19 @@ wallet prompt. The Walrus system package's abort codes are not mapped either: a 
 the executor's generic "failed on-chain" text.
 **Impact:** the user may approve a WAL payment they have not seen priced; the wallet still shows the
 transaction and the chain enforces it, and the amount is small (storage only, no write cost).
-**Remediation / evidence:** price the seeded amount when the row is shown (one client for all rows), or
-estimate in `extendBlob` before opening the wallet. The estimate is already labelled `≈`.
+**Remediation / evidence (0.1.58):** `composables/useExtendQuotes.ts`: Extend opens the wallet only for
+an amount whose quote the row has shown. The seeded default has no quote, so the button reads "Show
+cost"; pressing it prices the amount, shows `≈<WAL> for +N epochs` in a polite live region and turns the
+button into "Extend", and the next press opens the wallet. An edited amount or preset is priced as before
+(a late answer for an older amount is dropped); a quote is cleared after a successful extension; an amount
+that cannot be priced says "price unavailable" and may then be sent (the wallet still shows the
+transaction). Pinned by `tests/useExtendQuotes.test.ts` (7 tests). Not done: mapping the Walrus system
+package's abort codes in the failure text (the executor's generic message stays; no single wording is
+defined upstream).
 
 ### F13 — My Blobs styles text with custom properties design-tokens does not define
 
-**Severity:** Low   **Disposition:** DEFERRED (next patch release; one-file change; Section D pre-testnet "colour")
+**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit pending)
 **Where:** `src/components/MyBlobs.vue` (`.hint`, `.err`, `.blob-table th`, `.est`, `.at-max`, `.act-status`, borders, the `.warn` tint)
 **Issue:** the component uses `--mw-color-text-muted`, `--mw-color-danger`, `--mw-color-border` and
 `--mw-color-warning`. design-tokens 0.1.9 defines none of them (its roles are `--muted`, `--danger`,
@@ -280,19 +295,22 @@ theme. `WalrusView.vue` uses the real tokens (`--muted`, `--border`, `--surface`
 **Impact:** hint, helper and error text in My Blobs is hard to read for low-vision users in one theme
 each. Information is also in the text; nothing is hidden. Not browser-checked per theme and season: the
 `@meddleware/ui` gallery axe gate covers the shared components only.
-**Remediation / evidence:** replace the four names with `--muted`, `--danger`, `--border` and
-`--warning` (tint only); never `--warning` as text (use `--warning-text`). The design-tokens F10 check
-is otherwise clean here: no `color: var(--warning)` in `src/`.
+**Remediation / evidence (0.1.58):** `MyBlobs.vue` reads `--muted`, `--danger`, `--border` and
+`--warning` (tint only) with no literal fallbacks (and `--accent` without its `#6366f1` fallback); the
+expiring-row tint stays a background. `tests/design-tokens-used.test.ts` fails if any `.vue` file reads a
+custom property that design-tokens (tokens.css, seasons.css) or the file itself does not define, or uses
+`--warning` as `color:`. The roles' contrast per theme and season is design-tokens' own gate; this repo
+has no browser contrast test of its own (C.2), and My Blobs needs a connected wallet to render.
 
 ### F14 — `.env.local` is not git-ignored
 
-**Severity:** Info   **Disposition:** DEFERRED (next patch release; one line)
+**Severity:** Info   **Disposition:** RESOLVED (0.1.58, commit pending)
 **Where:** `.gitignore` (no `.env` pattern); `.env.example` says "Copy to .env.local … never commit"
 **Issue:** only `.env.example` is tracked, but nothing prevents `git add` of a local `.env.local`.
 `.dockerignore` excludes `.env*.local`, so the image build is safe.
 **Impact:** every `VITE_*` value is public, so a committed file would leak nothing secret; it could
 still pin a developer's local relay or gate into history.
-**Remediation / evidence:** ignore `.env` and `.env.*` except `.env.example`, as access-gate-ui did.
+**Remediation / evidence (0.1.58):** `.gitignore` ignores `.env*` except `.env.example`, as access-gate-ui does.
 
 ### F15 — `connect-src` allows any https origin
 
@@ -308,7 +326,7 @@ operator- or user-configured per network, so the hosts cannot be enumerated in a
 
 ### F16 — The npm publish gate is a subset of CI
 
-**Severity:** Low   **Disposition:** ACCEPTED-RISK
+**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit pending)
 **Where:** `.github/workflows/npm-publish.yml`
 **Issue:** the npm job's `verify` runs `npm ci`, the audit gate, type-check and the unit tests, not the
 full CI workflow (linters, licence check). The image release (F10) does run the full workflow on the
@@ -316,9 +334,11 @@ same tag.
 **Impact:** a tag could publish the source package while the image job refuses the same commit. The
 package is source only (`npm pack --dry-run` 2026-10-09: `src`, `index.html`, `vite.config.ts`,
 `tsconfig.json`, README, LICENSE; no tests, fixtures or `.env*`).
-**Remediation / evidence:** accepted: a source mirror for the dashboard, OIDC-published with provenance,
-tag == version checked, idempotent, and opt-in through the `NPM_PUBLISH` variable. Calling `node-ci.yml`
-from `npm-publish.yml` would close it.
+**Remediation / evidence (0.1.58):** `npm-publish.yml`'s `verify` job is now `uses: ./.github/workflows/node-ci.yml`,
+the same call `docker-publish.yml` makes, so a tag publishes the package only if the commit passes the
+whole CI workflow (type-check, all linters, tests, build, licences). Unchanged: OIDC publishing with
+provenance, tag == version check, idempotent, opt-in through `NPM_PUBLISH`. Workflow file only, not
+exercised locally (parsed as YAML); it runs on the next tag.
 
 ### F17 — The cosign identity pins the repository, not the workflow
 
@@ -332,7 +352,7 @@ deployed digest verified 2026-10-09 (16/16).
 
 ### F18 — Documentation drift
 
-**Severity:** Info   **Disposition:** DEFERRED (next patch release; documentation)
+**Severity:** Info   **Disposition:** RESOLVED (0.1.58, commit pending)
 **Where:** `package.json` `files`, `SECURITY.md`, `.github/workflows/npm-publish.yml`
 **Issue:** `files` lists `CHANGELOG.md`, which does not exist (the tarball is clean, the entry matches
 nothing); `SECURITY.md` invariant 1 says the tip cap is passed to `createWalrusClient`, but the app passes
@@ -341,8 +361,11 @@ nothing); `SECURITY.md` invariant 1 says the tip cap is passed to `createWalrusC
 imports (comments only).
 **Impact:** none on behaviour; reviewers are misled and every host installing the package gets the
 unused dependency.
-**Remediation / evidence:** add a `CHANGELOG.md` (or drop the `files` entry), correct the sentence,
-fix the message, and drop the dependency.
+**Remediation / evidence (0.1.58):** `CHANGELOG.md` added (in the tarball: `npm pack --dry-run`, 18
+files); `SECURITY.md` invariant 1 now says `maxTipMist` goes to `runBlobUpload`; the npm workflow message
+reads "npm publish with provenance is not configured"; `@mysten/wallet-standard` is dropped from
+`dependencies` (wallet-adapter brings its own copy). `AGENTS.md` no longer states a stale version and
+`CLAUDE.md` no longer lists the price as an operator setting.
 
 ## Section A — Invariant verification matrix
 
@@ -350,13 +373,13 @@ fix the message, and drop the dependency.
 | --- | --- | --- | --- | --- |
 | I1 | No on-chain logic in the app; ids only from the recorded deployment and the operator's gate | components use the libraries; `relayGateConfig` fixes package and PlatformConfig | `suiBoundary` lint (eslint-config 0.0.2, clean 2026-10-09); `config.test.ts`; live bundle read 2026-10-09 | HOLDS |
 | I2 | One wallet connection when embedded | wallet-adapter peer | dashboard | HOLDS |
-| I3 | Gate and relay follow the network and account | per-network gate state; the gate watcher resets on address or network change | component logic (code-only) | HOLDS for the gate; GAP for the owned-blob list (F11) |
+| I3 | Gate and relay follow the network and account | per-network gate state; the gate watcher resets on address or network change; `sessionKey` resets the upload widget; the owned-blob list drops a stale load (F11) | `useOwnedBlobs.stale.test.ts`; component logic for the gate (code-only) | HOLDS |
 | I4 | Dynamic URLs through helpers | `safeHref`, `ExplorerLink` | lint trial; source | HOLDS |
 | I5 | Permanence is a visible choice | upload form (D6, walrus-relay) | UI | HOLDS |
 | I6 | Storage failures never break a flow | `browserStorage()` | walrus-client tests | HOLDS (F8) |
 | I7 | The unit tests run on every change and every release | `node-ci.yml` `npm test`; release `verify` calls it | workflows read 2026-10-09 | HOLDS (F6) |
-| I8 | A slower owned-blob load never overwrites a newer one | none | none | GAP — see F11 |
-| I9 | The amount of every paid action is shown before the wallet opens | upload: cost line (walrus-relay); Extend: only after the amount is edited | source | GAP for Extend — see F12 |
+| I8 | A slower owned-blob load never overwrites a newer one | request counter in `useOwnedBlobs.load` | `tests/useOwnedBlobs.stale.test.ts` | HOLDS (F11) |
+| I9 | The amount of every paid action is shown before the wallet opens | upload: cost line (walrus-relay); purchase: terms from the chain (walrus-relay); Extend: `useExtendQuotes` | `tests/useExtendQuotes.test.ts`; walrus-relay tests | HOLDS (F12) |
 | I10 | The owned-blob listing works on real blob ids | walrus-client 0.0.27 | walrus-client tests and localnet suite; not pinned here (mocked) | HOLDS (F9) |
 
 ### Lens categories
@@ -364,11 +387,11 @@ fix the message, and drop the dependency.
 | Lens | Category | Status |
 | --- | --- | --- |
 | VUE | Untrusted rendering | HOLDS (I4); chain data (blob ids, object ids) renders as text; no on-chain image URL is rendered |
-| VUE | Colour & links | GAP — My Blobs uses undefined tokens with failing fallbacks (F13); no `--warning` text; the result URL is a stand-alone link |
+| VUE | Colour & links | HOLDS — My Blobs reads defined tokens only (F13, `design-tokens-used.test.ts`); no `--warning` text; the result URL is a stand-alone link; no browser contrast test of this app's own components (C.2) |
 | VUE | Build-time configuration | HOLDS — public values only; every variable in `.env.example`; defaults match the Dockerfile and README; ids that route commission come from `deployments` (VUE-M2) |
 | VUE | Test hooks | N/A — none; no test mode exists (`e2e/wallet.ts` is a documented stub, not in `src/`) |
-| VUE | Signing UX | HOLDS for upload and purchase (cost and tip estimates, permanence chosen, credit notice; network named in the intro; the wallet shows each transaction; double submission blocked while busy); GAP for Extend's cost (F12); failure text is the executor's generic message |
-| VUE | Shared-wallet state | HOLDS for the gate (I3); GAP for the owned-blob list (F11); the chain-id check and account-change events are wallet-adapter 0.0.17's (own audit) |
+| VUE | Signing UX | HOLDS for upload and purchase (cost and tip estimates, permanence chosen, credit notice; network named in the intro; the wallet shows each transaction; double submission blocked while busy); Extend's cost is shown before the wallet opens (F12); failure text is the executor's generic message |
+| VUE | Shared-wallet state | HOLDS for the gate and the owned-blob list (I3, F11); the chain-id check and account-change events are wallet-adapter 0.0.17's (own audit) |
 | VUE | Browser storage | HOLDS (I6) — keys scoped by network, gate and address; values validated by walrus-client |
 | VUE | Lazy boundaries | HOLDS — `@mysten/walrus` loads through the flow; only the `./flow` subpath is imported statically |
 | VUE | Dual app / library | HOLDS — `WalrusView` has no shell chrome |
@@ -391,7 +414,7 @@ fix the message, and drop the dependency.
 | WALRUS | Confidentiality | HOLDS — all blobs are public; the notice says the relay sees the content; nothing sensitive is promised (encryption is seal-ui) |
 | WALRUS | Flow resumability | through walrus-client — consume digest persisted before the upload and reused; same-registration retry (0.0.26); pending certification finished from My Blobs; listing fixed (F9) |
 | WALRUS | Size limits, Pagination, Lazy loading, Network configuration | client limits are UX; the edge limit is the gateway's; listing pages through all results (walrus-client, bounded); wasm loads lazily; package config is SDK-bundled |
-| IMG | Base images, build context, reproducible build, no secrets, runtime user, scan, SBOM and notices | HOLDS (F10) — digest-pinned `node:24-slim` and static-server 0.1.7; `.dockerignore` excludes `node_modules`, `dist`, `.git`, `.github`, `.env*.local`; `npm ci`; no secret in any `ARG`/`ENV`; Trivy before cosign; lockfile in the image; `/THIRD_PARTY_LICENSES` served |
+| IMG | Base images, build context, reproducible build, no secrets, runtime user, scan, SBOM and notices | HOLDS (F10) — digest-pinned `node:24-slim` and static-server 0.1.8 (0.1.7 in the deployed 0.1.57 image); `.dockerignore` excludes `node_modules`, `dist`, `.git`, `.github`, `.env*.local`; `npm ci`; no secret in any `ARG`/`ENV`; Trivy before cosign; lockfile in the image; `/THIRD_PARTY_LICENSES` served |
 | IMG | Verification command | GAP accepted — the identity pins the repository (F17) |
 | IMG | Deployment pinning | HOLDS — digest in `config/images.yaml` and the overlay; the base manifest's tag label (`0.1.0`) is overridden by the overlay digest and is cosmetic |
 
@@ -401,22 +424,22 @@ fix the message, and drop the dependency.
 
 | Dependency | Pinned version | Liveness dependency? | CVE / audit status | Notes |
 | --- | --- | --- | --- | --- |
-| `@meddleware/walrus-client` | `^0.0.27` (installed 0.0.27) | uploads, listing | `npm audit` gate clean 2026-10-09 | latest; 0.0.27 fixes F9 |
-| `@meddleware/walrus-relay` | `^0.1.30` | selection, gate | clean | latest |
-| `@meddleware/access-gate-client` | dev `^0.0.8` (type and deployments; installed 0.0.8) | gate reads | clean | latest |
+| `@meddleware/walrus-client` | `^0.0.28` (installed 0.0.28) | uploads, listing | `npm audit` gate clean 2026-10-18 | latest; 0.0.27 fixed F9 |
+| `@meddleware/walrus-relay` | `^0.1.31` | selection, gate | clean | latest; 0.1.31 breaking (adopted 0.1.58) |
+| `@meddleware/access-gate-client` | dev `^0.0.9` (type and deployments; installed 0.0.9) | gate reads | clean | latest |
 | `@meddleware/wallet-adapter` | peer `>=0.0.12 <0.2.0`; dev `^0.0.17` | wallet | own audit | host's copy |
-| `@meddleware/ui` / `design-tokens` / `eslint-config` | `^0.1.31` / `^0.1.9` / `^0.0.2` | UI | own audits | latest published |
+| `@meddleware/ui` / `design-tokens` / `eslint-config` | `^0.1.31` / `^0.1.10` / `^0.0.2` | UI | own audits | latest published |
 | `@mysten/walrus` / `@mysten/walrus-wasm` / `@mysten/sui` | `~1.2.32` (1.2.34) / `~0.3.1` / `^2.33.2` (2.35.0) | uploads / reads | gate clean | one copy (`npm ls`); ADR-0001 baseline `^2.33.1` |
-| `@mysten/wallet-standard` | `^0.21.0` | none | clean | declared, imported nowhere in `src/` or `tests/` (F18) |
+| `@mysten/wallet-standard` | not declared (was `^0.21.0`) | none | clean | dropped in 0.1.58 (F18); wallet-adapter brings its own copy |
 | Vue / Vite / TypeScript / vitest | 3.5.43 / 8.3 / 6.0.3 / 5.0.3 (plugin-vue 6.0.9, vue-tsc 3.3.x) | build | clean | TypeScript 7 and vitest 5-major follow-ups declined (decision); Node 24 LTS |
 | Sui full node; operator and public relays | public gRPC (wallet-adapter); relay hosts | listing; uploads | Mysten / operator | fail closed (no upload without a relay); operator relay down falls back to public |
-| `static-server` / `node:24-slim` | 0.1.7 / digest-pinned | runtime / build | Trivy at release (F10); Go 1.26.9 | — |
+| `static-server` / `node:24-slim` | 0.1.8 (0.1.7 deployed) / digest-pinned | runtime / build | Trivy at release (F10); Go 1.26.9 | — |
 | dev tooling | lockfile | no | GHSA-vfj7-8cjw-p6xm allowlisted to 2027-01-01 | `.github/audit-allowlist.json` |
 
 Shared-dependency matrix (TS lens): `@mysten/sui` dep `^2.33.2` (baseline `^2.33.1`, within range);
 `@mysten/walrus` dep `~1.2.32` and `@mysten/walrus-wasm` dep `~0.3.1` (the SDK's own tilde pins, as in the
 baseline); `vue` dep `^3.5.43`; `typescript` dev `~6.0.0`; `vitest` dev `~5.0.2`; `@mysten/wallet-standard`
-dep `^0.21.0`; `@mysten/seal` and `@mysten/bcs`: not used. First-party ranges are `^0.0.x` (exact) or
+not declared; `@mysten/seal` and `@mysten/bcs`: not used. First-party ranges are `^0.0.x` (exact) or
 `^0.1.x`; no `~0.0.x`; the peer range for wallet-adapter is `>=0.0.12 <0.2.0`, no `legacy-peer-deps`.
 
 Install-time code (TS B.TS-2): the lockfile has one lifecycle script, `fsevents` (dev, optional, macOS
@@ -434,7 +457,7 @@ CI & release integrity: actions pinned by SHA (workflows read 2026-10-09); expli
 workflow and job (`id-token`/`attestations` only on the signing job, `id-token` only on the npm publish
 job); OIDC publish with a tag == version check and an idempotent registry check; npm client pinned
 (`npm@11.20.0`); image release = full CI via `workflow_call` + Trivy + cosign + SPDX SBOM attestation +
-provenance, no `continue-on-error` on the public path (F10; the npm gate is a subset, F16); `npm ci`
+provenance, no `continue-on-error` on the public path (F10; the npm job calls the same CI workflow, F16); `npm ci`
 everywhere; audit gate in CI and the npm job (F3); Dependabot weekly and grouped for npm, Docker and
 Actions; no test-only build mode exists, so there is nothing to scan for; no job spends real funds (the
 nightly `integration.yml` runs a browser smoke suite only).
@@ -454,7 +477,7 @@ Framing is `'self'` only; the dashboard embeds the view as a component, not a fr
 
 ### B.VUE-2 Build inputs and artifacts / IMG
 
-`node:24-slim@sha256:0e0ff40c…` builder and `static-server:0.1.7@sha256:2e227311…` runtime, both
+`node:24-slim@sha256:0e0ff40c…` builder and `static-server:0.1.8@sha256:e32cf42b…` runtime (0.1.7 in the deployed image), both
 digest-pinned (Dependabot Docker group); `npm ci`; `.dockerignore` excludes local installs, build output,
 VCS data and every `.env*.local`; `npm run build && npm run licenses` run in the build stage; the runtime
 stage copies `dist` and the lockfile only; `USER 65534:65534`; no secret in any `ARG`/`ENV` (the build
@@ -483,12 +506,14 @@ manifests (F10).
 
 ## Section C — Test-coverage & hermetic/live split
 
-### C.1 Coverage grade — B (17/17, 2026-10-09)
+### C.1 Coverage grade — B (39/39, 2026-10-18)
 
-Vitest 5.0.3, 3 files: `blob-groups.test.ts`, `config.test.ts` (tip ceiling, relay hosts, gate config
-fixed to the deployment), `useOwnedBlobs.test.ts` (epoch source, network keying). The flows themselves are
+Vitest 5.0.3, 6 files: `blob-groups.test.ts`, `config.test.ts` (tip ceiling, relay hosts, gate config
+fixed to the deployment and accepted or refused by `useAccessGate`), `useOwnedBlobs.test.ts` (epoch source,
+network keying), `useOwnedBlobs.stale.test.ts` (F11), `useExtendQuotes.test.ts` (F12),
+`design-tokens-used.test.ts` (F13). The flows themselves are
 tested in walrus-client and walrus-relay. The listing is mocked here, so a parser regression such as F9
-passes this suite; the component logic (Extend pricing, switch handling, F11, F12) has no tests. The
+passes this suite; the Vue components themselves (`MyBlobs`, `WalrusView`) have no mounted tests (no test-utils harness here); their logic is in tested composables. The
 Playwright smoke suite (`e2e/app.smoke.spec.ts`) runs nightly in `integration.yml`, not on the PR path; the
 localnet upload spec is `fixme` pending a signing wallet (`e2e/wallet.ts` is a stub). The unit suite runs
 in `node-ci.yml` and so in the image release (F6). Gating variables: none.
@@ -499,7 +524,7 @@ in `node-ci.yml` and so in the image release (F6). Gating variables: none.
 | --- | --- | --- | --- |
 | Config, grouping, composables | yes | — | `npm test` |
 | Real upload, extend, gated relay | no | testnet | token-deployer-ui / dashboard `e2e:walrus` (shared flow); paywall e2e PASS 2026-10-09; walrus-client localnet suite PASS after 0.0.27 |
-| Browser contrast (axe) of this app's own components | no | `@meddleware/ui` gallery covers shared components only | F13 |
+| Browser contrast (axe) of this app's own components | no | `@meddleware/ui` gallery covers shared components only; My Blobs needs a connected wallet (the e2e wallet is a stub) | F13 (tokens pinned by unit test) |
 
 ## Section D — Deployment-readiness gates
 
@@ -514,13 +539,13 @@ in `node-ci.yml` and so in the image release (F6). Gating variables: none.
 - [x] image: digest-pinned bases, non-root, restricted pod, probes and limits, deployed by digest, signed with SBOM and provenance, scanned before signing (F10)
 - [x] consumed IDs are the latest on-chain version — live bundle carries `0xd7ddaa94…`, `0x3f81489d…` and gate `0x316f1bf9…` only (B.SC-1)
 - [x] every test project that exists runs in CI (F6)
-- [ ] state invalidated on switch in every view — owned-blob list (F11, next patch)
-- [ ] signing UX shows the amount of every paid action — Extend (F12, next patch)
-- [ ] colour: text meets AA in both themes — My Blobs tokens (F13, next patch)
+- [x] state invalidated on switch in every view — owned-blob list (F11, 0.1.58, `useOwnedBlobs.stale.test.ts`; commit pending)
+- [x] signing UX shows the amount of every paid action — Extend (F12, 0.1.58, `useExtendQuotes.test.ts`; commit pending)
+- [x] colour: text meets AA in both themes — My Blobs tokens (F13, 0.1.58, `design-tokens-used.test.ts`; commit pending)
 
 ### pre-mainnet
 
-- [ ] mainnet gate arguments in the Dockerfile (`VITE_ACCESS_GATE_SOULBOUND_MAINNET`, `…_PRICE_MIST_MAINNET`) — mainnet-blocked (no `access_gate` mainnet deployment)
+- [ ] mainnet gate arguments in the Dockerfile (`VITE_ACCESS_GATE_SOULBOUND_MAINNET`; the price variable is gone, the price is read from the chain) — mainnet-blocked (no `access_gate` mainnet deployment)
 - [ ] mainnet relay and gate configured; gated e2e on mainnet — mainnet-blocked
 - [x] CSP and HSTS on the one hosting path (B.VUE-1)
 - [ ] registry credential inventory and rotation (F7) — `OPERATOR_TASKS.md` "Image registry credentials"
@@ -541,8 +566,8 @@ in `node-ci.yml` and so in the image release (F6). Gating variables: none.
 ## Normative requirements (MUST / MUST NOT)
 
 - **VUE-M1–VUE-M9** — hold (VUE-M3 N/A: no test hooks); VUE-M4 holds for upload and purchase, with one
-  gap for Extend's cost (F12); VUE-M6 holds for the gate, with one gap for the owned-blob list (F11);
-  the *Colour & links* category has one open defect (F13).
+  gap for Extend's cost closed in 0.1.58 (F12); VUE-M6 holds for the gate and, since 0.1.58, the
+  owned-blob list (F11); the *Colour & links* defect (F13) is closed.
 - **SC-M1–SC-M10** — hold through the libraries (SC-M6 to SC-M9 are N/A: this app verifies no signature,
   binds no event, signs no dry-run PTB and extracts no created object). SC-M5: network, ids, client and
   wallet chain follow one selector.
@@ -553,10 +578,10 @@ in `node-ci.yml` and so in the image release (F6). Gating variables: none.
 ## Implementation suggestions (SHOULD / MAY)
 
 - SHOULD add the mainnet gate build arguments now, so the mainnet image is a configuration change.
-- SHOULD add a request guard to `useOwnedBlobs.load` and a test with two overlapping loads (F11).
 - SHOULD add a test that runs a realistic 78-digit blob id through the real listing parser, or a
   contract test against walrus-client's exported fixture, so a parser regression like F9 fails here.
-- SHOULD drop the unused `@mysten/wallet-standard` dependency (F18).
+- SHOULD add a mounted-component test harness (test-utils, jsdom) so `MyBlobs` and `WalrusView` are tested
+  as rendered, and a Playwright + axe contrast gate over a wallet-connected My Blobs once the e2e wallet exists.
 - MAY run a Trivy configuration scan of the Dockerfile and manifests in CI.
 
 ## Open questions (`OQ#`)
@@ -580,3 +605,4 @@ None.
 - 2026-10-03 — consumer wave: 0.1.51 (walrus-client 0.0.25, walrus-relay 0.1.26, access-gate-client 0.0.4, ui 0.1.30, design-tokens 0.1.8); deployed; live sweep clean.
 - 2026-10-08 — Lens dates reconciled with the registry (`check-template-dates.mjs`): base 2026-10-08, and SUI_CLIENT/GO 2026-10-08 and TS 2026-10-03 where cited. The changes (AUTH/PLATFORM/MCP/DB registered, the GO token row moved to AUTH, JSR in trusted publishing, layered injection guards) alter no disposition here.
 - 2026-10-09 — re-verified at 0.1.57 (`ba75d9e`) against the code, the workflows, the manifests and the live site/bundle. Template dates now VUE/TS/IMG 2026-10-08 (the lens changes since the first citation are covered by the sections added below); front matter gains the Walrus, VUE, TS and IMG fields. F1–F8 re-checked (F1, F2, F3, F6, F8 RESOLVED with evidence; F4 corrected: `accessGate()` catches the throw and falls back to an ungated UI, the gateway is the control; F7 ACCEPTED-RISK, inventory a maintainer item). New: F9 RESOLVED (owned-blob regression fixed by walrus-client 0.0.27 / walrus-ui 0.1.56), F10 RESOLVED (image release gate, Trivy, notices, lockfile, `USER 65534`, static-server 0.1.7), F11–F14 and F18 DEFERRED (owned-blob race, Extend cost, undefined colour tokens, `.env.local`, documentation drift), F15–F17 ACCEPTED-RISK. The known `node-ci.yml` gap (no `npm test`) was checked and is absent here. Relay gate updated to `0x316f1bf9…` (live bundle confirms; `0xfd6c3b…` gone). Counts: 17/17, audit gate 1 allowlisted / 0 open. Section D gates ticked with evidence; unticked: three next-patch items (F11–F13) and the mainnet/maintainer items.
+- 2026-10-18 — fix wave at 0.1.58 (commit pending): F11, F12, F13, F14, F16 and F18 RESOLVED with tests (`useOwnedBlobs.stale`, `useExtendQuotes`, `design-tokens-used`, gate pairing in `config.test.ts`; 39 tests in 6 files); Section D gates F11/F12/F13 ticked. Adopted walrus-relay 0.1.31 (pinned gate, terms from the chain, `sessionKey`), walrus-client 0.0.28, access-gate-client 0.0.9, design-tokens 0.1.10; removed `VITE_ACCESS_GATE_PRICE_MIST_TESTNET` (code, `.env.example`, Dockerfile, workflow, README); `@mysten/wallet-standard` dropped; Dockerfile base static-server 0.1.8 (`sha256:e32cf42b…4000`, digest checked against the quay.io tag API). F15 and F17 stay ACCEPTED-RISK (no single fix: hosts cannot be enumerated in a white-label build; the identity override lives in the workspace script). F7 and the mainnet/external-review gates are untouched. Local checks: type-check, lint:css/js/html, 39 unit tests, build, `check:licenses`, audit gate (1 allowlisted / 0 open) and the Playwright smoke suite (3/3) all pass. The npm-publish workflow change and the image build run on the next tag.

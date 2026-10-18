@@ -2,7 +2,8 @@
 // selects VITE_NETWORK in main.ts; embedded, the host's selector rules). Operator settings are
 // build-time VITE_* per network: relay hostnames default to the public Mysten relay (set
 // VITE_WALRUS_RELAY_* to your operator relay to collect the tip); the access gate is optional
-// (unset ⇒ ungated), and its package + PlatformConfig come from the published deployment.
+// (unset ⇒ ungated), and its package + PlatformConfig come from the published deployment; the
+// purchase price and payees are read from the chain, never configured.
 import { computed } from 'vue'
 import type { WalrusNetwork, RelayGateConfig } from '@meddleware/walrus-relay'
 import { relayGateConfig } from '@meddleware/walrus-relay'
@@ -64,9 +65,10 @@ export function uploadRelayMaxTipMist(envSource: EnvSource = env): number {
 }
 
 /**
- * The optional NFT access gate for a network: the operator supplies only the Gate id, soulbound
- * flag and purchase price (`VITE_ACCESS_GATE_*_{NET}`); `relayGateConfig` fixes the package and
- * `PlatformConfig` to the published deployment (commission enforcement). `null` — an ungated
+ * The optional NFT access gate for a network: the operator supplies only the Gate id and soulbound
+ * flag (`VITE_ACCESS_GATE_*_{NET}`); `relayGateConfig` fixes the package and `PlatformConfig` to the
+ * published deployment (commission enforcement), and the price is read from the gate on the chain.
+ * `null` — an ungated
  * relay — when no gate id is set, or when no access_gate deployment is recorded for the network.
  */
 export function accessGate(network: WalrusNetwork, envSource: EnvSource = env): RelayGateConfig | null {
@@ -77,7 +79,6 @@ export function accessGate(network: WalrusNetwork, envSource: EnvSource = env): 
     return relayGateConfig(network, {
       gateId,
       soulbound: envSource[`VITE_ACCESS_GATE_SOULBOUND_${NET}`] === 'true',
-      priceMist: BigInt(envSource[`VITE_ACCESS_GATE_PRICE_MIST_${NET}`] || '0'),
     })
   } catch (e) {
     console.warn(`[walrus-ui] access gate for ${network} disabled: ${e instanceof Error ? e.message : String(e)}`)

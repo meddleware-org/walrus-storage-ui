@@ -2,6 +2,7 @@
 // (default: the module's frozen import.meta.env), so each branch is exercised deterministically —
 // Vite inlines/freezes import.meta.env at transform time, which makes vi.stubEnv unreliable here.
 import { describe, it, expect } from 'vitest'
+import { useAccessGate } from '@meddleware/walrus-relay'
 import {
   relayHosts,
   uploadRelayMaxTipMist,
@@ -55,12 +56,11 @@ describe('accessGate', () => {
   it('builds a gate config when a gate id is present (packageId/platformConfigId from the library)', () => {
     const injected: EnvSource = {
       VITE_ACCESS_GATE_ID_TESTNET: '0xgate',
-      VITE_ACCESS_GATE_PRICE_MIST_TESTNET: '1000',
     }
     const gate = accessGate('testnet', injected)
     expect(gate).not.toBeNull()
     expect(gate!.gateId).toBe('0xgate')
-    expect(gate!.priceMist).toBe(1000n)
+    expect('priceMist' in gate!).toBe(false) // the price is read from the chain, never configured
     expect(gate!.nftType).toContain('::access_gate::AccessNFT')
     expect(gate!.packageId).toBeTruthy()
     expect(gate!.platformConfigId).toBeTruthy()
@@ -85,5 +85,30 @@ describe('accessGate', () => {
     })
     expect(gate!.soulbound).toBe(true)
     expect(gate!.nftType).toContain('SoulboundAccessNFT')
+  })
+})
+
+describe('accessGate with useAccessGate', () => {
+  const getClient = () => {
+    throw new Error('no chain read in this test')
+  }
+
+  it('produces a config useAccessGate accepts for its network, with the price left to the chain', () => {
+    const gate = accessGate('testnet', { VITE_ACCESS_GATE_ID_TESTNET: '0xgate' })
+    const state = useAccessGate({ network: 'testnet', gate, getClient })
+    expect(state.gateConfigured).toBe(true)
+    expect(state.hasAccess.value).toBeNull() // unknown until checked
+    expect(state.terms.value).toBeNull() // read from the chain, not configured
+  })
+
+  it('is refused for another network (the config names the published deployment of one)', () => {
+    const gate = accessGate('testnet', { VITE_ACCESS_GATE_ID_TESTNET: '0xgate' })
+    expect(() => useAccessGate({ network: 'mainnet', gate, getClient })).toThrow()
+  })
+
+  it('stays open (no gate) when none is configured', () => {
+    const state = useAccessGate({ network: 'testnet', gate: accessGate('testnet', {}), getClient })
+    expect(state.gateConfigured).toBe(false)
+    expect(state.hasAccess.value).toBe(true)
   })
 })
