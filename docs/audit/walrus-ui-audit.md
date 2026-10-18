@@ -20,16 +20,16 @@ Not triggered: AUTH (the app holds no credential; the access proof is built and 
 **Hosting:** container image on static-server (CSP and HSTS from the server); no static-host `_headers` file
 **Embedding hosts:** the dashboard (`WalrusView`, no shell chrome; dashboard requires `^0.1.56`)
 **VITE_\* inventory:** `VITE_NETWORK` (testnet|mainnet, baked, selects the network only), `VITE_WALRUS_RELAY_{TESTNET,MAINNET}` (operator relay host, baked, per network), `VITE_UPLOAD_RELAY_MAX_TIP_MIST` (tip ceiling), `VITE_ACCESS_GATE_{ID,SOULBOUND}_{TESTNET,MAINNET}` (the operator's gate object and soulbound flag; the package and PlatformConfig are never configurable, and the price is read from the chain since 0.1.58, so the former `…_PRICE_MIST_*` variable is gone), `VITE_DOCS_URL` / `VITE_DEV_URL` (footer links); all public, none secret; all listed in `.env.example` (per-network names by template)
-**Images:** `quay.io/meddleware-org/walrus-ui:0.1.57@sha256:631abc3a…3708` (Docker Hub mirror; cosign keyless, SPDX SBOM attestation, build provenance; verified 2026-10-09, `verify-digests.sh` 16/16)
-**Base images:** build `node:24-slim@sha256:0e0ff40c…f9b6`; runtime `quay.io/meddleware-org/static-server:0.1.8@sha256:e32cf42b…4000` from 0.1.58 (the deployed 0.1.57 image carries 0.1.7, `sha256:2e227311…2379`, Go 1.26.9)
+**Images:** `quay.io/meddleware-org/walrus-ui:0.1.58@sha256:0e02f43112ec67dc10f7e892af2f95a9be71998325df3946bca030a1ebb2e110` (Docker Hub mirror, same digest; cosign keyless signature verified 2026-10-18 against the workflow-anchored identity, `verify-digests.sh` 16/16; SPDX SBOM attestation, build provenance). Superseded 0.1.57 was `sha256:631abc3a…3708`
+**Base images:** build `node:24-slim@sha256:0e0ff40c…f9b6`; runtime `quay.io/meddleware-org/static-server:0.1.8@sha256:e32cf42b…4000` in 0.1.58 (the 0.1.57 image deployed 2026-10-09 carried 0.1.7, `sha256:2e227311…2379`, Go 1.26.9)
 **Runtime user:** `USER 65534:65534`   **Runtime FS:** read-only root, no writable mounts
 **Deployed by:** `post-bootstrap/walrus/overlays/testnet` (base `post-bootstrap/walrus/base/ui`); digest from `config/images.yaml`
 **Build args:** `CSP`, `VITE_NETWORK`, `VITE_WALRUS_RELAY_{TESTNET,MAINNET}`, `VITE_ACCESS_GATE_ID_{TESTNET,MAINNET}`, `VITE_ACCESS_GATE_SOULBOUND_TESTNET`, `VITE_UPLOAD_RELAY_MAX_TIP_MIST` — none secret, none a test switch
-**Deployment status:** npm v0.1.57 (2026-10-09); image `quay.io/meddleware-org/walrus-ui` serving `sui-walrus.meddleware.co.uk` at 0.1.57 (`sha256:631abc3a…`, deployed 2026-10-09; the live bundle carries `access_gate` `0xd7ddaa94…`, PlatformConfig `0x3f81489d…` and gate `0x316f1bf9…` only); embedded in dashboard 0.1.84 (requires `^0.1.56`)
-**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-02 · re-verified 2026-10-09 · fixes 2026-10-18
+**Deployment status:** npm v0.1.58 (2026-10-18); image `quay.io/meddleware-org/walrus-ui` serving `sui-walrus.meddleware.co.uk` at 0.1.58 (`sha256:0e02f431…e110`; release tag `v0.1.58` = `97c3247`; released, signature verified and deployed 2026-10-18, rollout succeeded; 0.1.57 `sha256:631abc3a…` was deployed 2026-10-09; the live bundle carries `access_gate` `0xd7ddaa94…`, PlatformConfig `0x3f81489d…` and gate `0x316f1bf9…` only, none of the superseded `0xa55789…` / `0xfd6c3b…`, checked 2026-10-18; live headers re-checked 2026-10-18); embedded in dashboard 0.1.85 (requires `^0.1.56`)
+**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-02 · re-verified 2026-10-09 · fixes 2026-10-18 (0.1.58, released and deployed)
 **Reviewer:** Internal review
 **Severity ceiling:** Medium — the app drives paid uploads and pass purchases with the user's wallet; it holds no keys and decides nothing on its own.
-**Status:** fixes for F11–F14, F16 and F18 in 0.1.58 (2026-10-18; commit `54df3d6`, not yet released or deployed); re-verified 2026-10-09 at 0.1.57
+**Status:** fixes for F11–F14, F16 and F18 in 0.1.58 (2026-10-18; commit `54df3d6`; released and deployed 2026-10-18, signature verified, rollout succeeded); re-verified 2026-10-09 at 0.1.57
 
 ---
 
@@ -338,7 +338,7 @@ package is source only (`npm pack --dry-run` 2026-10-09: `src`, `index.html`, `v
 the same call `docker-publish.yml` makes, so a tag publishes the package only if the commit passes the
 whole CI workflow (type-check, all linters, tests, build, licences). Unchanged: OIDC publishing with
 provenance, tag == version check, idempotent, opt-in through `NPM_PUBLISH`. Workflow file only, not
-exercised locally (parsed as YAML); it runs on the next tag.
+exercised locally (parsed as YAML); it ran green on the `v0.1.58` tag (Publish (npm) run 39119582060 and Publish (Docker) run 39119582082, 2026-10-18).
 
 ### F17 — The cosign identity pins the repository, not the workflow
 
@@ -348,7 +348,7 @@ exercised locally (parsed as YAML); it runs on the next tag.
 **Impact:** a workflow added by someone with write access could sign an image the check would accept.
 **Remediation / evidence:** the repository is the signing boundary; anchoring to
 `docker-publish.yml@refs/tags/v*` is a `COSIGN_IDENTITY_REGEXP` override in the workspace script. The
-deployed digest verified 2026-10-09 (16/16).
+deployed digests verified 2026-10-09 (0.1.57) and 2026-10-18 (0.1.58), 16/16 both times; the 2026-10-18 run used the workflow-anchored identity `docker-publish.yml@refs/tags/v*`, which is narrower than the repository-wide check this finding describes (disposition left to the workspace audit).
 
 ### F18 — Documentation drift
 
@@ -414,7 +414,7 @@ reads "npm publish with provenance is not configured"; `@mysten/wallet-standard`
 | WALRUS | Confidentiality | HOLDS — all blobs are public; the notice says the relay sees the content; nothing sensitive is promised (encryption is seal-ui) |
 | WALRUS | Flow resumability | through walrus-client — consume digest persisted before the upload and reused; same-registration retry (0.0.26); pending certification finished from My Blobs; listing fixed (F9) |
 | WALRUS | Size limits, Pagination, Lazy loading, Network configuration | client limits are UX; the edge limit is the gateway's; listing pages through all results (walrus-client, bounded); wasm loads lazily; package config is SDK-bundled |
-| IMG | Base images, build context, reproducible build, no secrets, runtime user, scan, SBOM and notices | HOLDS (F10) — digest-pinned `node:24-slim` and static-server 0.1.8 (0.1.7 in the deployed 0.1.57 image); `.dockerignore` excludes `node_modules`, `dist`, `.git`, `.github`, `.env*.local`; `npm ci`; no secret in any `ARG`/`ENV`; Trivy before cosign; lockfile in the image; `/THIRD_PARTY_LICENSES` served |
+| IMG | Base images, build context, reproducible build, no secrets, runtime user, scan, SBOM and notices | HOLDS (F10) — digest-pinned `node:24-slim` and static-server 0.1.8 (as deployed in 0.1.58; 0.1.57 carried 0.1.7); `.dockerignore` excludes `node_modules`, `dist`, `.git`, `.github`, `.env*.local`; `npm ci`; no secret in any `ARG`/`ENV`; Trivy before cosign; lockfile in the image; `/THIRD_PARTY_LICENSES` served |
 | IMG | Verification command | GAP accepted — the identity pins the repository (F17) |
 | IMG | Deployment pinning | HOLDS — digest in `config/images.yaml` and the overlay; the base manifest's tag label (`0.1.0`) is overridden by the overlay digest and is cosmetic |
 
@@ -433,7 +433,7 @@ reads "npm publish with provenance is not configured"; `@mysten/wallet-standard`
 | `@mysten/wallet-standard` | not declared (was `^0.21.0`) | none | clean | dropped in 0.1.58 (F18); wallet-adapter brings its own copy |
 | Vue / Vite / TypeScript / vitest | 3.5.43 / 8.3 / 6.0.3 / 5.0.3 (plugin-vue 6.0.9, vue-tsc 3.3.x) | build | clean | TypeScript 7 and vitest 5-major follow-ups declined (decision); Node 24 LTS |
 | Sui full node; operator and public relays | public gRPC (wallet-adapter); relay hosts | listing; uploads | Mysten / operator | fail closed (no upload without a relay); operator relay down falls back to public |
-| `static-server` / `node:24-slim` | 0.1.8 (0.1.7 deployed) / digest-pinned | runtime / build | Trivy at release (F10); Go 1.26.9 | — |
+| `static-server` / `node:24-slim` | 0.1.8 (deployed in 0.1.58 since 2026-10-18) / digest-pinned | runtime / build | Trivy at release (F10); Go 1.26.9 | — |
 | dev tooling | lockfile | no | GHSA-vfj7-8cjw-p6xm allowlisted to 2027-01-01 | `.github/audit-allowlist.json` |
 
 Shared-dependency matrix (TS lens): `@mysten/sui` dep `^2.33.2` (baseline `^2.33.1`, within range);
@@ -477,15 +477,15 @@ Framing is `'self'` only; the dashboard embeds the view as a component, not a fr
 
 ### B.VUE-2 Build inputs and artifacts / IMG
 
-`node:24-slim@sha256:0e0ff40c…` builder and `static-server:0.1.8@sha256:e32cf42b…` runtime (0.1.7 in the deployed image), both
+`node:24-slim@sha256:0e0ff40c…` builder and `static-server:0.1.8@sha256:e32cf42b…` runtime (as deployed in 0.1.58; the 0.1.57 image carried 0.1.7), both
 digest-pinned (Dependabot Docker group); `npm ci`; `.dockerignore` excludes local installs, build output,
 VCS data and every `.env*.local`; `npm run build && npm run licenses` run in the build stage; the runtime
 stage copies `dist` and the lockfile only; `USER 65534:65534`; no secret in any `ARG`/`ENV` (the build
 args are the public `VITE_*` values and the CSP); production sourcemaps are not emitted (Vite default);
 the deployment is read-only root, `runAsNonRoot` uid 65534, no privilege escalation, all capabilities
 dropped, `RuntimeDefault` seccomp, `automountServiceAccountToken: false`, readiness and liveness probes on
-`/`, requests 5m/16Mi and limits 100m/48Mi; digest `sha256:631abc3a…` in both `config/images.yaml` and the
-overlay; cosign signature verified 2026-10-09 (F17). Not run: a Trivy *config* scan of the Dockerfile and
+`/`, requests 5m/16Mi and limits 100m/48Mi; digest `sha256:0e02f431…e110` (0.1.58; 0.1.57 was `sha256:631abc3a…`) in both `config/images.yaml` and the
+overlay; cosign signature verified 2026-10-09 (0.1.57) and 2026-10-18 (0.1.58) (F17). Not run: a Trivy *config* scan of the Dockerfile and
 manifests (F10).
 
 ### B.SC-1 ID-constant trace
@@ -534,7 +534,7 @@ in `node-ci.yml` and so in the image release (F6). Gating variables: none.
 
 ### pre-testnet
 
-- [x] deployed with digest pinning; CSP and HSTS verified live 2026-10-09; gated relay live (paywall e2e PASS 2026-10-09)
+- [x] deployed with digest pinning; CSP and HSTS verified live 2026-10-09 and again on 0.1.58 on 2026-10-18 (`curl -I`: CSP, HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`); gated relay live (paywall e2e PASS 2026-10-09)
 - [x] `SECURITY.md` present
 - [x] image: digest-pinned bases, non-root, restricted pod, probes and limits, deployed by digest, signed with SBOM and provenance, scanned before signing (F10)
 - [x] consumed IDs are the latest on-chain version — live bundle carries `0xd7ddaa94…`, `0x3f81489d…` and gate `0x316f1bf9…` only (B.SC-1)
@@ -606,3 +606,4 @@ None.
 - 2026-10-08 — Lens dates reconciled with the registry (`check-template-dates.mjs`): base 2026-10-08, and SUI_CLIENT/GO 2026-10-08 and TS 2026-10-03 where cited. The changes (AUTH/PLATFORM/MCP/DB registered, the GO token row moved to AUTH, JSR in trusted publishing, layered injection guards) alter no disposition here.
 - 2026-10-09 — re-verified at 0.1.57 (`ba75d9e`) against the code, the workflows, the manifests and the live site/bundle. Template dates now VUE/TS/IMG 2026-10-08 (the lens changes since the first citation are covered by the sections added below); front matter gains the Walrus, VUE, TS and IMG fields. F1–F8 re-checked (F1, F2, F3, F6, F8 RESOLVED with evidence; F4 corrected: `accessGate()` catches the throw and falls back to an ungated UI, the gateway is the control; F7 ACCEPTED-RISK, inventory a maintainer item). New: F9 RESOLVED (owned-blob regression fixed by walrus-client 0.0.27 / walrus-ui 0.1.56), F10 RESOLVED (image release gate, Trivy, notices, lockfile, `USER 65534`, static-server 0.1.7), F11–F14 and F18 DEFERRED (owned-blob race, Extend cost, undefined colour tokens, `.env.local`, documentation drift), F15–F17 ACCEPTED-RISK. The known `node-ci.yml` gap (no `npm test`) was checked and is absent here. Relay gate updated to `0x316f1bf9…` (live bundle confirms; `0xfd6c3b…` gone). Counts: 17/17, audit gate 1 allowlisted / 0 open. Section D gates ticked with evidence; unticked: three next-patch items (F11–F13) and the mainnet/maintainer items.
 - 2026-10-18 — fix wave at 0.1.58 (commit `54df3d6`): F11, F12, F13, F14, F16 and F18 RESOLVED with tests (`useOwnedBlobs.stale`, `useExtendQuotes`, `design-tokens-used`, gate pairing in `config.test.ts`; 39 tests in 6 files); Section D gates F11/F12/F13 ticked. Adopted walrus-relay 0.1.31 (pinned gate, terms from the chain, `sessionKey`), walrus-client 0.0.28, access-gate-client 0.0.9, design-tokens 0.1.10; removed `VITE_ACCESS_GATE_PRICE_MIST_TESTNET` (code, `.env.example`, Dockerfile, workflow, README); `@mysten/wallet-standard` dropped; Dockerfile base static-server 0.1.8 (`sha256:e32cf42b…4000`, digest checked against the quay.io tag API). F15 and F17 stay ACCEPTED-RISK (no single fix: hosts cannot be enumerated in a white-label build; the identity override lives in the workspace script). F7 and the mainnet/external-review gates are untouched. Local checks: type-check, lint:css/js/html, 39 unit tests, build, `check:licenses`, audit gate (1 allowlisted / 0 open) and the Playwright smoke suite (3/3) all pass. The npm-publish workflow change and the image build run on the next tag.
+- 2026-10-18 — released and deployed (`v0.1.58` = `97c3247`, `0.1.58@sha256:0e02f43112ec67dc10f7e892af2f95a9be71998325df3946bca030a1ebb2e110`), verified live. Cosign keyless signature verified against the workflow-anchored identity (`verify-digests.sh` 16/16); published to npm and as an image; rollout (`apply.sh walrus`) succeeded; the page loads in headless Chromium with no console errors or CSP violations, the live headers are present (re-read with `curl -I`) and the live bundle carries only the current ids (`0xd7ddaa94…`, `0x3f81489d…`, gate `0x316f1bf9…`). Mainnet-blocked, credential and external-review gates unchanged.
