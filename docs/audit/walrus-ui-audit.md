@@ -29,7 +29,7 @@ Not triggered: AUTH (the app holds no credential; the access proof is built and 
 **Review date:** 2026-09-18 (first pass) · re-verified 2026-10-02 · re-verified 2026-10-09 · fixes 2026-10-18
 **Reviewer:** Internal review
 **Severity ceiling:** Medium — the app drives paid uploads and pass purchases with the user's wallet; it holds no keys and decides nothing on its own.
-**Status:** fixes for F11–F14, F16 and F18 in 0.1.58 (2026-10-18; commit pending, not yet released or deployed); re-verified 2026-10-09 at 0.1.57
+**Status:** fixes for F11–F14, F16 and F18 in 0.1.58 (2026-10-18; commit `54df3d6`, not yet released or deployed); re-verified 2026-10-09 at 0.1.57
 
 ---
 
@@ -61,7 +61,7 @@ Re-verified 2026-10-09 (0.1.57; 17 unit tests, type-check and all three linters 
 - The known CI gap found in the sibling web apps (the reusable `node-ci.yml` has no `npm test` step, so
   the release gate stops running the unit tests) is **not present here**: `node-ci.yml` runs `npm test`,
   the release `verify` job calls it, and the npm job runs the tests too (F6).
-- The newly applicable lens checks found defects, **fixed in 0.1.58 (2026-10-18; commit pending)**:
+- The newly applicable lens checks found defects, **fixed in 0.1.58 (2026-10-18; commit `54df3d6`)**:
   **F11 (Low, RESOLVED)** a slower owned-blob load could overwrite a newer one after an account or
   network switch; **F12 (Low, RESOLVED)** Extend signed the seeded default without showing its cost;
   **F13 (Low, RESOLVED)** My Blobs styled text with `--mw-color-*` custom properties that design-tokens
@@ -241,7 +241,7 @@ Dockerfile and manifests (the image scan runs at release).
 
 ### F11 — A slower owned-blob load can overwrite a newer one after a switch
 
-**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit pending)
+**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit `54df3d6`)
 **Where:** `src/composables/useOwnedBlobs.ts` (`load`), `MyBlobs.vue` (watchers on address and network)
 **Issue:** `load` captures its key (`<network>|<address>`) when it starts but, after the awaits,
 assigns `blobs`, `currentEpoch` and `loadedFor` without checking that the key is still the wanted one,
@@ -262,7 +262,7 @@ same-key cache hit during a refresh); six of them fail on the 0.1.57 code.
 
 ### F12 — Extend signs the seeded default without showing its cost
 
-**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit pending; failure text unchanged, see note)
+**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit `54df3d6`; failure text unchanged, see note)
 **Where:** `src/components/MyBlobs.vue` (`setExtendAmount`, `extendBlob`)
 **Issue:** each row's amount is seeded to +10 epochs (clamped) without pricing it; the WAL estimate is
 fetched only when the user edits the amount or presses a preset. Pressing **Extend** straight away
@@ -283,7 +283,7 @@ defined upstream).
 
 ### F13 — My Blobs styles text with custom properties design-tokens does not define
 
-**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit pending)
+**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit `54df3d6`)
 **Where:** `src/components/MyBlobs.vue` (`.hint`, `.err`, `.blob-table th`, `.est`, `.at-max`, `.act-status`, borders, the `.warn` tint)
 **Issue:** the component uses `--mw-color-text-muted`, `--mw-color-danger`, `--mw-color-border` and
 `--mw-color-warning`. design-tokens 0.1.9 defines none of them (its roles are `--muted`, `--danger`,
@@ -304,7 +304,7 @@ has no browser contrast test of its own (C.2), and My Blobs needs a connected wa
 
 ### F14 — `.env.local` is not git-ignored
 
-**Severity:** Info   **Disposition:** RESOLVED (0.1.58, commit pending)
+**Severity:** Info   **Disposition:** RESOLVED (0.1.58, commit `54df3d6`)
 **Where:** `.gitignore` (no `.env` pattern); `.env.example` says "Copy to .env.local … never commit"
 **Issue:** only `.env.example` is tracked, but nothing prevents `git add` of a local `.env.local`.
 `.dockerignore` excludes `.env*.local`, so the image build is safe.
@@ -326,7 +326,7 @@ operator- or user-configured per network, so the hosts cannot be enumerated in a
 
 ### F16 — The npm publish gate is a subset of CI
 
-**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit pending)
+**Severity:** Low   **Disposition:** RESOLVED (0.1.58, commit `54df3d6`)
 **Where:** `.github/workflows/npm-publish.yml`
 **Issue:** the npm job's `verify` runs `npm ci`, the audit gate, type-check and the unit tests, not the
 full CI workflow (linters, licence check). The image release (F10) does run the full workflow on the
@@ -352,7 +352,7 @@ deployed digest verified 2026-10-09 (16/16).
 
 ### F18 — Documentation drift
 
-**Severity:** Info   **Disposition:** RESOLVED (0.1.58, commit pending)
+**Severity:** Info   **Disposition:** RESOLVED (0.1.58, commit `54df3d6`)
 **Where:** `package.json` `files`, `SECURITY.md`, `.github/workflows/npm-publish.yml`
 **Issue:** `files` lists `CHANGELOG.md`, which does not exist (the tarball is clean, the entry matches
 nothing); `SECURITY.md` invariant 1 says the tip cap is passed to `createWalrusClient`, but the app passes
@@ -539,9 +539,9 @@ in `node-ci.yml` and so in the image release (F6). Gating variables: none.
 - [x] image: digest-pinned bases, non-root, restricted pod, probes and limits, deployed by digest, signed with SBOM and provenance, scanned before signing (F10)
 - [x] consumed IDs are the latest on-chain version — live bundle carries `0xd7ddaa94…`, `0x3f81489d…` and gate `0x316f1bf9…` only (B.SC-1)
 - [x] every test project that exists runs in CI (F6)
-- [x] state invalidated on switch in every view — owned-blob list (F11, 0.1.58, `useOwnedBlobs.stale.test.ts`; commit pending)
-- [x] signing UX shows the amount of every paid action — Extend (F12, 0.1.58, `useExtendQuotes.test.ts`; commit pending)
-- [x] colour: text meets AA in both themes — My Blobs tokens (F13, 0.1.58, `design-tokens-used.test.ts`; commit pending)
+- [x] state invalidated on switch in every view — owned-blob list (F11, 0.1.58, `useOwnedBlobs.stale.test.ts`; commit `54df3d6`)
+- [x] signing UX shows the amount of every paid action — Extend (F12, 0.1.58, `useExtendQuotes.test.ts`; commit `54df3d6`)
+- [x] colour: text meets AA in both themes — My Blobs tokens (F13, 0.1.58, `design-tokens-used.test.ts`; commit `54df3d6`)
 
 ### pre-mainnet
 
@@ -605,4 +605,4 @@ None.
 - 2026-10-03 — consumer wave: 0.1.51 (walrus-client 0.0.25, walrus-relay 0.1.26, access-gate-client 0.0.4, ui 0.1.30, design-tokens 0.1.8); deployed; live sweep clean.
 - 2026-10-08 — Lens dates reconciled with the registry (`check-template-dates.mjs`): base 2026-10-08, and SUI_CLIENT/GO 2026-10-08 and TS 2026-10-03 where cited. The changes (AUTH/PLATFORM/MCP/DB registered, the GO token row moved to AUTH, JSR in trusted publishing, layered injection guards) alter no disposition here.
 - 2026-10-09 — re-verified at 0.1.57 (`ba75d9e`) against the code, the workflows, the manifests and the live site/bundle. Template dates now VUE/TS/IMG 2026-10-08 (the lens changes since the first citation are covered by the sections added below); front matter gains the Walrus, VUE, TS and IMG fields. F1–F8 re-checked (F1, F2, F3, F6, F8 RESOLVED with evidence; F4 corrected: `accessGate()` catches the throw and falls back to an ungated UI, the gateway is the control; F7 ACCEPTED-RISK, inventory a maintainer item). New: F9 RESOLVED (owned-blob regression fixed by walrus-client 0.0.27 / walrus-ui 0.1.56), F10 RESOLVED (image release gate, Trivy, notices, lockfile, `USER 65534`, static-server 0.1.7), F11–F14 and F18 DEFERRED (owned-blob race, Extend cost, undefined colour tokens, `.env.local`, documentation drift), F15–F17 ACCEPTED-RISK. The known `node-ci.yml` gap (no `npm test`) was checked and is absent here. Relay gate updated to `0x316f1bf9…` (live bundle confirms; `0xfd6c3b…` gone). Counts: 17/17, audit gate 1 allowlisted / 0 open. Section D gates ticked with evidence; unticked: three next-patch items (F11–F13) and the mainnet/maintainer items.
-- 2026-10-18 — fix wave at 0.1.58 (commit pending): F11, F12, F13, F14, F16 and F18 RESOLVED with tests (`useOwnedBlobs.stale`, `useExtendQuotes`, `design-tokens-used`, gate pairing in `config.test.ts`; 39 tests in 6 files); Section D gates F11/F12/F13 ticked. Adopted walrus-relay 0.1.31 (pinned gate, terms from the chain, `sessionKey`), walrus-client 0.0.28, access-gate-client 0.0.9, design-tokens 0.1.10; removed `VITE_ACCESS_GATE_PRICE_MIST_TESTNET` (code, `.env.example`, Dockerfile, workflow, README); `@mysten/wallet-standard` dropped; Dockerfile base static-server 0.1.8 (`sha256:e32cf42b…4000`, digest checked against the quay.io tag API). F15 and F17 stay ACCEPTED-RISK (no single fix: hosts cannot be enumerated in a white-label build; the identity override lives in the workspace script). F7 and the mainnet/external-review gates are untouched. Local checks: type-check, lint:css/js/html, 39 unit tests, build, `check:licenses`, audit gate (1 allowlisted / 0 open) and the Playwright smoke suite (3/3) all pass. The npm-publish workflow change and the image build run on the next tag.
+- 2026-10-18 — fix wave at 0.1.58 (commit `54df3d6`): F11, F12, F13, F14, F16 and F18 RESOLVED with tests (`useOwnedBlobs.stale`, `useExtendQuotes`, `design-tokens-used`, gate pairing in `config.test.ts`; 39 tests in 6 files); Section D gates F11/F12/F13 ticked. Adopted walrus-relay 0.1.31 (pinned gate, terms from the chain, `sessionKey`), walrus-client 0.0.28, access-gate-client 0.0.9, design-tokens 0.1.10; removed `VITE_ACCESS_GATE_PRICE_MIST_TESTNET` (code, `.env.example`, Dockerfile, workflow, README); `@mysten/wallet-standard` dropped; Dockerfile base static-server 0.1.8 (`sha256:e32cf42b…4000`, digest checked against the quay.io tag API). F15 and F17 stay ACCEPTED-RISK (no single fix: hosts cannot be enumerated in a white-label build; the identity override lives in the workspace script). F7 and the mainnet/external-review gates are untouched. Local checks: type-check, lint:css/js/html, 39 unit tests, build, `check:licenses`, audit gate (1 allowlisted / 0 open) and the Playwright smoke suite (3/3) all pass. The npm-publish workflow change and the image build run on the next tag.
