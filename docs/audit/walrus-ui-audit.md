@@ -75,8 +75,8 @@ Re-verified 2026-10-09 (0.1.57; 17 unit tests, type-check and all three linters 
   `VITE_ACCESS_GATE_PRICE_MIST_TESTNET` build argument.
 - The design-tokens F10 check (`color: var(--warning)` as text) is clean here: no `--warning` colour is
   used as text in `src/`; the tint on an expiring row is a background (F13).
-- Accepted: **F15** blanket `connect-src https:`, **F17** the cosign identity pins the repository not
-  the workflow. **F7** (registry credential inventory) is a
+- Accepted: **F15** blanket `connect-src https:`. **F17** the cosign identity pinned the repository, not
+  the workflow (RESOLVED 2026-10-18: the workspace `verify-digests.sh` default is now workflow-anchored). **F7** (registry credential inventory) is a
   maintainer item.
 
 Fixes in the libraries reach the app: the pending-purchase guard (walrus-relay F10), the bounded and
@@ -342,13 +342,17 @@ exercised locally (parsed as YAML); it ran green on the `v0.1.58` tag (Publish (
 
 ### F17 — The cosign identity pins the repository, not the workflow
 
-**Severity:** Info   **Disposition:** ACCEPTED-RISK
+**Severity:** Info   **Disposition:** RESOLVED (2026-10-18, workspace `verify-digests.sh` default; was ACCEPTED-RISK)
 **Where:** `bootstrap/images/verify-digests.sh` (workspace); this repository publishes no verify command
-**Issue:** the cluster check accepts any workflow identity of `github.com/meddleware-org/walrus-ui`.
-**Impact:** a workflow added by someone with write access could sign an image the check would accept.
-**Remediation / evidence:** the repository is the signing boundary; anchoring to
-`docker-publish.yml@refs/tags/v*` is a `COSIGN_IDENTITY_REGEXP` override in the workspace script. The
-deployed digests verified 2026-10-09 (0.1.57) and 2026-10-18 (0.1.58), 16/16 both times; the 2026-10-18 run used the workflow-anchored identity `docker-publish.yml@refs/tags/v*`, which is narrower than the repository-wide check this finding describes (disposition left to the workspace audit).
+**Issue:** the cluster check accepted any workflow identity of `github.com/meddleware-org/walrus-ui`.
+**Impact:** a workflow added by someone with write access could have signed an image the check would accept.
+**Remediation / evidence:** fixed in the workspace script on 2026-10-18: the default identity in
+`bootstrap/images/verify-digests.sh` is now `^https://github\.com/meddleware-org/${name}/\.github/workflows/docker-publish\.yml@refs/tags/v`
+(`COSIGN_IDENTITY_REGEXP` still overrides it), so a signature from any other workflow or ref of the repository is
+rejected. All 16 deployed and contingency images verified valid against it on 2026-10-18
+(`STRICT=0 bash bootstrap/images/verify-digests.sh`, 0.1.58 included); 2026-10-09 (0.1.57) was
+checked with the earlier repository-wide identity. This repository publishes no verify command, so the script
+default was the only remaining problem.
 
 ### F18 — Documentation drift
 
@@ -415,7 +419,7 @@ reads "npm publish with provenance is not configured"; `@mysten/wallet-standard`
 | WALRUS | Flow resumability | through walrus-client — consume digest persisted before the upload and reused; same-registration retry (0.0.26); pending certification finished from My Blobs; listing fixed (F9) |
 | WALRUS | Size limits, Pagination, Lazy loading, Network configuration | client limits are UX; the edge limit is the gateway's; listing pages through all results (walrus-client, bounded); wasm loads lazily; package config is SDK-bundled |
 | IMG | Base images, build context, reproducible build, no secrets, runtime user, scan, SBOM and notices | HOLDS (F10) — digest-pinned `node:24-slim` and static-server 0.1.8 (as deployed in 0.1.58; 0.1.57 carried 0.1.7); `.dockerignore` excludes `node_modules`, `dist`, `.git`, `.github`, `.env*.local`; `npm ci`; no secret in any `ARG`/`ENV`; Trivy before cosign; lockfile in the image; `/THIRD_PARTY_LICENSES` served |
-| IMG | Verification command | GAP accepted — the identity pins the repository (F17) |
+| IMG | Verification command | HOLDS — this repository publishes no command; the cluster check pins `docker-publish.yml@refs/tags/v` (F17, RESOLVED 2026-10-18) |
 | IMG | Deployment pinning | HOLDS — digest in `config/images.yaml` and the overlay; the base manifest's tag label (`0.1.0`) is overridden by the overlay digest and is cosmetic |
 
 ## Section B — Supply-chain, publish-authority & capability matrix
@@ -485,7 +489,7 @@ args are the public `VITE_*` values and the CSP); production sourcemaps are not 
 the deployment is read-only root, `runAsNonRoot` uid 65534, no privilege escalation, all capabilities
 dropped, `RuntimeDefault` seccomp, `automountServiceAccountToken: false`, readiness and liveness probes on
 `/`, requests 5m/16Mi and limits 100m/48Mi; digest `sha256:0e02f431…e110` (0.1.58; 0.1.57 was `sha256:631abc3a…`) in both `config/images.yaml` and the
-overlay; cosign signature verified 2026-10-09 (0.1.57) and 2026-10-18 (0.1.58) (F17). Not run: a Trivy *config* scan of the Dockerfile and
+overlay; cosign signature verified 2026-10-09 (0.1.57) and 2026-10-18 (0.1.58; the latter against the workflow-anchored identity) (F17). Not run: a Trivy *config* scan of the Dockerfile and
 manifests (F10).
 
 ### B.SC-1 ID-constant trace
@@ -573,7 +577,7 @@ in `node-ci.yml` and so in the image release (F6). Gating variables: none.
   wallet chain follow one selector.
 - **TS-M1–TS-M9** — hold. TS-M9: `@mysten/sui` is a single copy; wallet-adapter is a peer.
 - **WAL-M1–WAL-M9** — hold through the libraries (WAL-M6 N/A: no blob bytes are read here).
-- **IMG-M1–IMG-M8** — hold; IMG-M8's verification command pins the repository only (F17).
+- **IMG-M1–IMG-M8** — hold; IMG-M8 holds: no command is published here and the cluster check pins the publish workflow and tag refs (F17, RESOLVED 2026-10-18).
 
 ## Implementation suggestions (SHOULD / MAY)
 
@@ -607,3 +611,4 @@ None.
 - 2026-10-09 — re-verified at 0.1.57 (`ba75d9e`) against the code, the workflows, the manifests and the live site/bundle. Template dates now VUE/TS/IMG 2026-10-08 (the lens changes since the first citation are covered by the sections added below); front matter gains the Walrus, VUE, TS and IMG fields. F1–F8 re-checked (F1, F2, F3, F6, F8 RESOLVED with evidence; F4 corrected: `accessGate()` catches the throw and falls back to an ungated UI, the gateway is the control; F7 ACCEPTED-RISK, inventory a maintainer item). New: F9 RESOLVED (owned-blob regression fixed by walrus-client 0.0.27 / walrus-ui 0.1.56), F10 RESOLVED (image release gate, Trivy, notices, lockfile, `USER 65534`, static-server 0.1.7), F11–F14 and F18 DEFERRED (owned-blob race, Extend cost, undefined colour tokens, `.env.local`, documentation drift), F15–F17 ACCEPTED-RISK. The known `node-ci.yml` gap (no `npm test`) was checked and is absent here. Relay gate updated to `0x316f1bf9…` (live bundle confirms; `0xfd6c3b…` gone). Counts: 17/17, audit gate 1 allowlisted / 0 open. Section D gates ticked with evidence; unticked: three next-patch items (F11–F13) and the mainnet/maintainer items.
 - 2026-10-18 — fix wave at 0.1.58 (commit `54df3d6`): F11, F12, F13, F14, F16 and F18 RESOLVED with tests (`useOwnedBlobs.stale`, `useExtendQuotes`, `design-tokens-used`, gate pairing in `config.test.ts`; 39 tests in 6 files); Section D gates F11/F12/F13 ticked. Adopted walrus-relay 0.1.31 (pinned gate, terms from the chain, `sessionKey`), walrus-client 0.0.28, access-gate-client 0.0.9, design-tokens 0.1.10; removed `VITE_ACCESS_GATE_PRICE_MIST_TESTNET` (code, `.env.example`, Dockerfile, workflow, README); `@mysten/wallet-standard` dropped; Dockerfile base static-server 0.1.8 (`sha256:e32cf42b…4000`, digest checked against the quay.io tag API). F15 and F17 stay ACCEPTED-RISK (no single fix: hosts cannot be enumerated in a white-label build; the identity override lives in the workspace script). F7 and the mainnet/external-review gates are untouched. Local checks: type-check, lint:css/js/html, 39 unit tests, build, `check:licenses`, audit gate (1 allowlisted / 0 open) and the Playwright smoke suite (3/3) all pass. The npm-publish workflow change and the image build run on the next tag.
 - 2026-10-18 — released and deployed (`v0.1.58` = `97c3247`, `0.1.58@sha256:0e02f43112ec67dc10f7e892af2f95a9be71998325df3946bca030a1ebb2e110`), verified live. Cosign keyless signature verified against the workflow-anchored identity (`verify-digests.sh` 16/16); published to npm and as an image; rollout (`apply.sh walrus`) succeeded; the page loads in headless Chromium with no console errors or CSP violations, the live headers are present (re-read with `curl -I`) and the live bundle carries only the current ids (`0xd7ddaa94…`, `0x3f81489d…`, gate `0x316f1bf9…`). Mainnet-blocked, credential and external-review gates unchanged.
+- 2026-10-18 — F17 (cosign identity) RESOLVED: the default identity in `bootstrap/images/verify-digests.sh` is now workflow-anchored (`^https://github\.com/meddleware-org/${name}/\.github/workflows/docker-publish\.yml@refs/tags/v`); all 16 deployed and contingency images verified valid against it (`STRICT=0 bash bootstrap/images/verify-digests.sh`). This repository publishes no verify command, so nothing else remained.
