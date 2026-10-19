@@ -189,7 +189,7 @@ secrets (no OIDC on those registries); inventoried in B.2. The scope and rotatio
 maintainer item (DEFERRED: `OPERATOR_TASKS.md` "Image registry credentials — record scope and
 rotation").
 **Remediation / evidence (2026-10-09):** the public publish path has no `continue-on-error`; only the
-self-hosted mirror jobs do (best-effort, they fail without registry credentials and never sign). The
+self-hosted `mirror-private` job does (best-effort; it copies the published, signed image by digest and fails without registry credentials). The
 cluster pins digests and verifies signatures, so an unsigned tag would not run.
 
 ### F8 — Blocked browser storage broke uploads
@@ -615,3 +615,4 @@ None.
 - 2026-10-19 — dependency-bot status checked (read-only): `.github/dependabot.yml` carries the `ignore` rules and the repository has no open Dependabot pull requests (`gh pr list`, 2026-10-19). Versions, findings and gates were not re-examined in this pass.
   - `Dockerfile` on GitHub `main` now pins the `static-server` base at `0.1.9@sha256:af6cc284…edc72` (merged Dependabot docker PR); this repo was not re-released or redeployed for it, so the deployed image is still built on the 0.1.8 base (the stock default CSP added in 0.1.9 is replaced by this repo's own `CONTENT_SECURITY_POLICY`).
   - Dependabot policy encoded in .github/dependabot.yml (majors declined); open PRs merged 2026-10-19
+  - `docker-publish.yml`: the private rebuild jobs are replaced by one `mirror-private` job that copies the published quay.io image (and its cosign artifacts) to the self-hosted registry by digest and fails unless the digest and the signature match (build once, promote by digest; committed locally, not yet released; the `PRIVATE_REGISTRY_*` credentials are still unset).
