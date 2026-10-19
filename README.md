@@ -37,7 +37,7 @@ All `VITE_*` vars are baked into the static bundle at build time.
 | `VITE_ACCESS_GATE_ID_TESTNET` | — | Gate object ID (testnet; unset = no gate) |
 | `VITE_ACCESS_GATE_SOULBOUND_TESTNET` | `false` | `true` if NFTs are soulbound |
 | `VITE_ACCESS_GATE_ID_MAINNET` | — | Gate object ID (mainnet) |
-| `VITE_UPLOAD_RELAY_MAX_TIP_MIST` | `50000000` | Max relay tip cap in MIST (0.05 SUI) |
+| `VITE_UPLOAD_RELAY_MAX_TIP_MIST` | `5000000` | Max relay tip cap in MIST (0.005 SUI) |
 
 The `access_gate` package and `PlatformConfig` come from the published deployment
 (`relayGateConfig` in `@meddleware/walrus-relay`) — operators only configure the values listed

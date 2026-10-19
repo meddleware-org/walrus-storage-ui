@@ -25,6 +25,10 @@ describe('uploadRelayMaxTipMist', () => {
     expect(uploadRelayMaxTipMist({})).toBe(DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST)
   })
 
+  it('defaults to the workspace ceiling of 0.005 SUI (D2, re-derived under D57)', () => {
+    expect(DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST).toBe(5_000_000)
+  })
+
   it('uses a valid positive override', () => {
     expect(uploadRelayMaxTipMist({ VITE_UPLOAD_RELAY_MAX_TIP_MIST: '1234567' })).toBe(1234567)
   })

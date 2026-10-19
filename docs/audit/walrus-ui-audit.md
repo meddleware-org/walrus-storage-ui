@@ -10,7 +10,7 @@ Not triggered: AUTH (the app holds no credential; the access proof is built and 
 **Package config source:** SDK-bundled per network (`createWalrusClient({ network })`); no caller-supplied package ids; localnet shows a notice
 **Upload relays:** operator `https://sui-walrus-relay-testnet.meddleware.co.uk` (build argument `VITE_WALRUS_RELAY_TESTNET`; mainnet unset) · public fallback `https://upload-relay.{testnet,mainnet}.walrus.space`
 **Aggregator / publisher hosts:** none of the app's own; the result URL comes from walrus-client and is bound through `safeHref`; no publisher is used
-**Tip ceiling:** `VITE_UPLOAD_RELAY_MAX_TIP_MIST`, default 50 000 000 MIST (0.05 SUI, D2), passed as `maxTipMist` to the flow   **Epoch default / maximum:** the widget defaults to the single-reservation maximum (53, `max_epochs_ahead`); longer lifetimes through Extend
+**Tip ceiling:** `VITE_UPLOAD_RELAY_MAX_TIP_MIST`, default 5 000 000 MIST (0.005 SUI, D2 re-derived under D57; 0.05 SUI until 0.1.58), passed as `maxTipMist` to the flow   **Epoch default / maximum:** the widget defaults to the single-reservation maximum (53, `max_epochs_ahead`); longer lifetimes through Extend
 **Deletable default:** permanent (D6): an explained, visible tick-box; a permanent blob cannot be removed by anyone before it expires. **Blob ownership:** the connected wallet owns the Blob on the relay path (it registers and certifies)
 **Networks:** testnet (live); mainnet when Walrus and the gate are configured; localnet shows a notice
 **On-chain packages consumed:** Walrus system objects (SDK); `access_gate` through `relayGateConfig` (access-gate-client 0.0.9 `deployments`: testnet `0xd7ddaa94…88c9`, PlatformConfig `0x3f81489d…e7b5`) with `VITE_ACCESS_GATE_ID_TESTNET` = relay gate `0x316f1bf9…faddc` (soulbound, 10 uses, 0.01 SUI; the old gate `0xfd6c3b…` is on the superseded, immutable package `0xa55789…`)
@@ -616,3 +616,9 @@ None.
   - `Dockerfile` on GitHub `main` now pins the `static-server` base at `0.1.9@sha256:af6cc284…edc72` (merged Dependabot docker PR); this repo was not re-released or redeployed for it, so the deployed image is still built on the 0.1.8 base (the stock default CSP added in 0.1.9 is replaced by this repo's own `CONTENT_SECURITY_POLICY`).
   - Dependabot policy encoded in .github/dependabot.yml (majors declined); open PRs merged 2026-10-19
   - `docker-publish.yml`: the private rebuild jobs are replaced by one `mirror-private` job that copies the published quay.io image (and its cosign artifacts) to the self-hosted registry by digest and fails unless the digest and the signature match (build once, promote by digest; committed locally, not yet released; the `PRIVATE_REGISTRY_*` credentials are still unset).
+- 2026-10-19 — tip ceiling re-derived from the workspace cost model (`docs/economics/COST_MODEL.md`, D57):
+  `DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST` 50_000_000 → 5_000_000 (README, `.env.example`, CLAUDE.md and the front-matter
+  line updated; a new config test pins the value). Version 0.1.59, commit pending. The CI variable
+  `VITE_UPLOAD_RELAY_MAX_TIP_MIST`, if set, overrides the default and is changed by the maintainer. Measured with
+  Node 26.12.0: type-check, lint (css, js, html), 40/40 unit tests, build, licence check and the audit gate pass. No
+  disposition changes.

@@ -49,10 +49,10 @@ export function walruscanBlobUrl(network: WalrusNetwork, blobId: string): string
 }
 
 /**
- * Default relay tip ceiling (MIST) when `VITE_UPLOAD_RELAY_MAX_TIP_MIST` is unset: 0.05 SUI, the
+ * Default relay tip ceiling (MIST) when `VITE_UPLOAD_RELAY_MAX_TIP_MIST` is unset: 0.005 SUI, the
  * workspace-wide ceiling (~8× the operator relay's worst-case tip at the 100 MiB edge cap).
  */
-export const DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST = 50_000_000
+export const DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST = 5_000_000
 
 /**
  * Cap on the relay tip payment in MIST, from `VITE_UPLOAD_RELAY_MAX_TIP_MIST`. This is a ceiling to
