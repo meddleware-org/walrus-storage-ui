@@ -16,7 +16,7 @@
 #   VITE_WALRUS_RELAY_MAINNET          — operator relay URL for mainnet (optional)
 #   VITE_ACCESS_GATE_ID_{NET}          — operator's Gate shared object ID (from create_gate)
 #   VITE_ACCESS_GATE_SOULBOUND_{NET}   — "true" if soulbound (optional, default false)
-#   VITE_UPLOAD_RELAY_MAX_TIP_MIST     — max relay tip cap in MIST (optional, default 50000000)
+#   VITE_UPLOAD_RELAY_MAX_TIP_MIST     — max relay tip cap in MIST (optional, default 5000000; leave the repository variable unset)
 # packageId and platformConfigId are hardcoded in @meddleware/walrus-relay constants.
 # Content-Security-Policy served by static-server (verified 2026-09-30: production build loaded in
 # Chromium under this policy with zero violations). script-src stays 'self' plus 'wasm-unsafe-eval' (Walrus / Move bytecode WebAssembly); connect-src allows
