@@ -4,6 +4,12 @@ All notable changes to `@meddleware/walrus-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 
+## [0.1.61] - 2026-10-22
+
+### Changed
+
+- Dependencies: walrus-client ^0.0.30 (flow passes the real challenge expiry; nft-gate-client 0.0.18 rules), walrus-relay ^0.1.33, access-gate-client ^0.0.10 (stale indexer fallback); image base static-server 0.1.11 (Go 1.26.10 standard library, CVE-2026-111943)
+
 ## [0.1.60] - 2026-10-19
 
 ### Changed
