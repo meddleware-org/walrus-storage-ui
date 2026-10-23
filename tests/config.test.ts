@@ -2,7 +2,7 @@
 // (default: the module's frozen import.meta.env), so each branch is exercised deterministically —
 // Vite inlines/freezes import.meta.env at transform time, which makes vi.stubEnv unreliable here.
 import { describe, it, expect } from 'vitest'
-import { useAccessGate } from '@meddleware/walrus-relay'
+import { useAccessGate } from '@meddleware/walrus-storage-kit'
 import {
   relayHosts,
   uploadRelayMaxTipMist,

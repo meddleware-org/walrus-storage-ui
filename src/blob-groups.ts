@@ -1,7 +1,7 @@
 // Group a wallet's owned Walrus blobs by `blobId` for display. Re-uploading the same content creates
 // multiple independent Blob objects (each its own storage reservation); grouping collapses those into
 // one row so My Blobs matches how Walruscan thinks per-blobId, while still exposing each copy.
-import type { OwnedBlob } from '@meddleware/walrus-client'
+import type { OwnedBlob } from '@meddleware/walrus-storage-client'
 
 export interface BlobGroup {
   /** Shared Walrus blob id. */

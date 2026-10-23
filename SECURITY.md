@@ -2,13 +2,13 @@
 
 ## Scope
 
-This policy covers security issues in the `@meddleware/walrus-ui` application/library source
-(`src/**`) — the upload/blob-management UI, the `WalrusView` library export, and config wiring (the
-upload orchestrator and its consume-resume layer are `@meddleware/walrus-client/flow`).
+This policy covers security issues in the `@meddleware/walrus-storage-ui` application/library source
+(`src/**`) — the upload/blob-management UI, the `WalrusStorageView` library export, and config wiring (the
+upload orchestrator and its consume-resume layer are `@meddleware/walrus-storage-client/flow`).
 
 It does not cover:
 
-- `@meddleware/wallet-adapter`, `@meddleware/walrus-relay`, `@meddleware/walrus-client`, or
+- `@meddleware/wallet-adapter`, `@meddleware/walrus-storage-kit`, `@meddleware/walrus-storage-client`, or
   `@mysten/walrus` (see their own policies)
 - The Walrus relay/aggregator or Sui RPC endpoints, or the wallet extension (which confirms every
   signature)
@@ -19,7 +19,7 @@ These invariants are load-bearing. A report demonstrating that any is violated i
 treated as high severity:
 
 1. **The authoritative upload-relay tip cap is wired.** `VITE_UPLOAD_RELAY_MAX_TIP_MIST` is passed as
-   `maxTipMist` to the flow's `runBlobUpload` (`@meddleware/walrus-client/flow`), which hands it to the
+   `maxTipMist` to the flow's `runBlobUpload` (`@meddleware/walrus-storage-client/flow`), which hands it to the
    Walrus client as the relay-tip ceiling, so a malicious relay cannot induce an unbounded tip (the relay
    UI library only shows the tip; the ceiling is enforced here and in the client).
 2. **No secret is a `VITE_*` value.** All `VITE_*` config (network, relay URLs, docs URL, tip cap) is

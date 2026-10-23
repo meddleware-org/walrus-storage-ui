@@ -1,4 +1,4 @@
-# @meddleware/walrus-ui
+# @meddleware/walrus-storage-ui
 
 [![License: 0BSD](https://img.shields.io/badge/license-0BSD-blue)](LICENSE)
 
@@ -21,8 +21,8 @@ npm install
 npm run dev
 ```
 
-> `@meddleware/walrus-relay` is resolved from the npm registry. For local development against an
-> unpublished library, use `npm link @meddleware/walrus-relay` or an `overrides` entry pointing at
+> `@meddleware/walrus-storage-kit` is resolved from the npm registry. For local development against an
+> unpublished library, use `npm link @meddleware/walrus-storage-kit` or an `overrides` entry pointing at
 > a local checkout.
 
 ## Environment variables
@@ -40,27 +40,27 @@ All `VITE_*` vars are baked into the static bundle at build time.
 | `VITE_UPLOAD_RELAY_MAX_TIP_MIST` | `5000000` | Max relay tip cap in MIST (0.005 SUI) |
 
 The `access_gate` package and `PlatformConfig` come from the published deployment
-(`relayGateConfig` in `@meddleware/walrus-relay`) — operators only configure the values listed
+(`relayGateConfig` in `@meddleware/walrus-storage-kit`) — operators only configure the values listed
 above.
 
 ## Docker build
 
-The Docker context is this repo root. `@meddleware/walrus-relay` resolves from the npm registry,
+The Docker context is this repo root. `@meddleware/walrus-storage-kit` resolves from the npm registry,
 so the library must be published before building the image.
 
 ```bash
 docker build \
   --build-arg VITE_NETWORK=testnet \
-  --build-arg VITE_WALRUS_RELAY_TESTNET=https://sui-walrus-relay.example.com \
+  --build-arg VITE_WALRUS_RELAY_TESTNET=https://sui-walrus-storage-relay.example.com \
   --build-arg VITE_ACCESS_GATE_ID_TESTNET=0x... \
-  -t walrus-ui:latest .
+  -t walrus-storage-ui:latest .
 ```
 
 ## Architecture
 
 Thin SPA — no accounting logic, no chain state derivation. The app:
 1. Reads config from env vars
-2. Wires `@meddleware/walrus-relay` composables (`useAccessGate`, `useWalrusRelay`) to the
+2. Wires `@meddleware/walrus-storage-kit` composables (`useAccessGate`, `useWalrusRelay`) to the
    connected wallet
 3. Passes a `performUpload` callback to `WalrusUpload`, which holds the `@mysten/walrus` client
    and the upload flow logic

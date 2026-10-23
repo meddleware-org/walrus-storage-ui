@@ -16,7 +16,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   // Build once, then serve the static bundle. Env for a localnet-targeted build is passed through
-  // from the shell (e.g. after `source ../walrus-client/localnet/.env.localnet` + VITE_* mapping).
+  // from the shell (e.g. after `source ../walrus-storage-client/localnet/.env.localnet` + VITE_* mapping).
   webServer: {
     command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,

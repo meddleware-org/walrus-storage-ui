@@ -1,14 +1,14 @@
 # ── build stage ───────────────────────────────────────────────────────────────
 # Standalone build — the Docker context is this repo root. All @meddleware/*
-# dependencies (including @meddleware/walrus-relay) resolve from the npm registry,
+# dependencies (including @meddleware/walrus-storage-kit) resolve from the npm registry,
 # so the library must be published before this image is built.
 #
 #   docker build \
 #     --build-arg VITE_NETWORK=testnet \
-#     --build-arg VITE_WALRUS_RELAY_TESTNET=https://sui-walrus-relay-testnet.meddleware.co.uk \
+#     --build-arg VITE_WALRUS_RELAY_TESTNET=https://sui-walrus-storage-relay-testnet.meddleware.co.uk \
 #     --build-arg VITE_ACCESS_GATE_ID_TESTNET=0x... \
 #     --build-arg VITE_ACCESS_GATE_SOULBOUND_TESTNET=true \
-#     -t walrus-ui:<tag> .
+#     -t walrus-storage-ui:<tag> .
 #
 # Build args (VITE_* are baked into the static bundle at build time):
 #   VITE_NETWORK                       — "testnet" | "mainnet"  (default: testnet)
@@ -17,7 +17,7 @@
 #   VITE_ACCESS_GATE_ID_{NET}          — operator's Gate shared object ID (from create_gate)
 #   VITE_ACCESS_GATE_SOULBOUND_{NET}   — "true" if soulbound (optional, default false)
 #   VITE_UPLOAD_RELAY_MAX_TIP_MIST     — max relay tip cap in MIST (optional, default 5000000; leave the repository variable unset)
-# packageId and platformConfigId are hardcoded in @meddleware/walrus-relay constants.
+# packageId and platformConfigId are hardcoded in @meddleware/walrus-storage-kit constants.
 # Content-Security-Policy served by static-server (verified 2026-09-30: production build loaded in
 # Chromium under this policy with zero violations). script-src stays 'self' plus 'wasm-unsafe-eval' (Walrus / Move bytecode WebAssembly); connect-src allows
 # any https origin because RPC, relay, aggregator and Seal key-server hosts are partly operator- or
@@ -63,7 +63,7 @@ ENV CONTENT_SECURITY_POLICY="${CSP}"
 COPY --from=build /app/dist /app/public
 # The lockfile lets SBOM scanners see the npm packages the bundle was built from (the bundle itself carries no
 # package metadata). It sits outside the served directory; THIRD_PARTY_LICENSES is served with the site.
-COPY --from=build /app/package-lock.json /usr/share/doc/walrus-ui/package-lock.json
+COPY --from=build /app/package-lock.json /usr/share/doc/walrus-storage-ui/package-lock.json
 
 ENV SERVE_DIR=/app/public \
     SPA_FALLBACK=true \

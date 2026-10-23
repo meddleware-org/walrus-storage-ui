@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // Standalone shell for the Walrus SPA: app header + footer wrapping the core tool view.
-// The core UI lives in WalrusView.vue (also exported for inline embedding in the dashboard).
+// The core UI lives in WalrusStorageView.vue (also exported for inline embedding in the dashboard).
 import { AppHeader, AppFooter, ColorModeControl, useColorMode } from '@meddleware/ui'
-import { TipConfigBadge } from '@meddleware/walrus-relay'
+import { TipConfigBadge } from '@meddleware/walrus-storage-kit'
 import { walrusNetwork, OPERATOR_RELAY_HOSTS } from './config.js'
-import WalrusView from './components/WalrusView.vue'
+import WalrusStorageView from './components/WalrusStorageView.vue'
 
 const { mode, set } = useColorMode('dark')
 const DOCS_URL = import.meta.env.VITE_DOCS_URL || 'https://docs.meddleware.co.uk/blockchain/sui/walrus-storage/'
@@ -24,7 +24,7 @@ const DEV_URL  = import.meta.env.VITE_DEV_URL  || 'https://dev.meddleware.co.uk/
     </AppHeader>
 
     <main class="app__content">
-      <WalrusView />
+      <WalrusStorageView />
     </main>
 
     <AppFooter :docs-url="DOCS_URL" :dev-url="DEV_URL" />
@@ -39,7 +39,7 @@ const DEV_URL  = import.meta.env.VITE_DEV_URL  || 'https://dev.meddleware.co.uk/
 }
 
 /* Centre the tool at the shared tool-content width when running standalone. The dashboard
-   supplies its own width container, so this lives in the shell, not WalrusView. */
+   supplies its own width container, so this lives in the shell, not WalrusStorageView. */
 .app__content {
   flex: 1;
   width: 100%;

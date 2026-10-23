@@ -1,6 +1,6 @@
 // Regression test for the "everything shows as expired" bug: the owned-blobs cache must compare
 // blob end epochs against the WALRUS committee epoch, not the Sui system-state epoch (different
-// clocks). A fake walrus-client is injected via vi.mock so no wasm/network is touched.
+// clocks). A fake walrus-storage-client is injected via vi.mock so no wasm/network is touched.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // getSuiClient is only used to fetch owned objects (via the mocked fetchOwnedWalrusBlobs), so a
@@ -9,7 +9,7 @@ vi.mock('../src/wallet.js', () => ({ getSuiClient: () => ({ __sui: true }) }))
 
 // The Walrus committee epoch (560) is intentionally far below the Sui epoch a fullnode would report
 // (~1218). A blob ending at epoch 570 must therefore read as ~10 epochs remaining — NOT expired.
-vi.mock('@meddleware/walrus-client', () => ({
+vi.mock('@meddleware/walrus-storage-client', () => ({
   createWalrusClient: () => ({
     walrus: { systemState: async () => ({ committee: { epoch: 560 } }) },
   }),

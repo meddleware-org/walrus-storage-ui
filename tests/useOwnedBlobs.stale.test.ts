@@ -15,7 +15,7 @@ const h = vi.hoisted(() => {
   return { pending }
 })
 
-vi.mock('@meddleware/walrus-client', () => ({
+vi.mock('@meddleware/walrus-storage-client', () => ({
   createWalrusClient: () => ({
     walrus: { systemState: async () => ({ committee: { epoch: 560 } }) },
   }),

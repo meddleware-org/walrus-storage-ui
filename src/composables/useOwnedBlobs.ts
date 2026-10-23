@@ -7,7 +7,7 @@
 // unless `force` is set
 // (used after an upload/extend, which can create or mutate on-chain blobs).
 import { ref } from 'vue'
-import type { OwnedBlob } from '@meddleware/walrus-client'
+import type { OwnedBlob } from '@meddleware/walrus-storage-client'
 // Lightweight URL import — just the wasm asset URL (does not pull the walrus client eagerly).
 import walrusWasmUrl from '@mysten/walrus-wasm/web/walrus_wasm_bg.wasm?url'
 import { getSuiClient } from '../wallet.js'
@@ -58,7 +58,7 @@ async function load(address: string | null, opts: { force?: boolean } = {}): Pro
   loading.value = true
   error.value = null
   try {
-    const { createWalrusClient, fetchOwnedWalrusBlobs } = await import('@meddleware/walrus-client')
+    const { createWalrusClient, fetchOwnedWalrusBlobs } = await import('@meddleware/walrus-storage-client')
     const suiClient = getSuiClient()
     const walrusClient = createWalrusClient({ network: net, wasmUrl: walrusWasmUrl })
     // Blob `endEpoch` is a WALRUS epoch, so compare against the Walrus committee epoch — NOT the

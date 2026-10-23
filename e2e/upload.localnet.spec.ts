@@ -11,16 +11,16 @@
 //   2. **A localnet build target for the SPA.** App.vue builds its Walrus client from `NETWORK`
 //      (testnet|mainnet). Targeting the localnet testbed needs config.ts to accept `localnet` and
 //      thread `walrusPackageConfig` + `storageNodeUrlScheme:'http'` (the harvested WALRUS_* ids) into
-//      createWalrusClient — mirroring the extension already added to @meddleware/walrus-client.
+//      createWalrusClient — mirroring the extension already added to @meddleware/walrus-storage-client.
 //
 // Until both land, this spec self-skips (fixme). Once they do, remove `.fixme` and run it after
-// `source ../walrus-client/localnet/.env.localnet` with the app built against localnet.
+// `source ../walrus-storage-client/localnet/.env.localnet` with the app built against localnet.
 import { test, expect } from '@playwright/test'
 import { installLocalnetWallet } from './wallet.js'
 
 const READY = process.env.WALRUS_LOCALNET === '1' && !!process.env.WALRUS_TEST_SECRET_KEY
 
-test.describe('walrus-ui localnet upload', () => {
+test.describe('walrus-storage-ui localnet upload', () => {
   test.skip(!READY, 'requires a sourced .env.localnet (WALRUS_LOCALNET=1)')
 
   test.fixme('uploads a blob through the localnet relay and lists it in My Blobs', async ({ page }) => {

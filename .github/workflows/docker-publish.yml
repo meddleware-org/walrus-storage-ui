@@ -5,7 +5,7 @@ on:
       - "v*"
 
 env:
-  IMAGE: walrus-ui
+  IMAGE: walrus-storage-ui
 
 permissions:
   contents: read

@@ -1,4 +1,4 @@
-// @meddleware/walrus-ui — library entry.
+// @meddleware/walrus-storage-ui — library entry.
 //
 // Exports the core Walrus tool view (no app shell) for inline embedding in the dashboard.
 // The standalone SPA (App.vue + main.ts) is unaffected and still builds/deploys as before.
@@ -7,4 +7,4 @@
 //   import '@meddleware/design-tokens/tokens.css'
 //   import '@meddleware/ui/base.css'
 
-export { default as WalrusView } from './components/WalrusView.vue'
+export { default as WalrusStorageView } from './components/WalrusStorageView.vue'

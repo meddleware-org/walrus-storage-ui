@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Core Walrus tool UI (upload + owned-blob management), free of any app shell (header/footer).
-// Rendered standalone by walrus-ui's App.vue and inline by the dashboard. Wallet state comes
+// Rendered standalone by walrus-storage-ui's App.vue and inline by the dashboard. Wallet state comes
 // from the shared @meddleware/wallet-adapter singleton (via ./wallet.js), so connecting here or
 // in any other inline tool view reflects everywhere.
 import { computed, ref, watch } from 'vue'
@@ -10,7 +10,7 @@ import {
   AccessGateCta,
   useAccessGate,
   type WalrusNetwork,
-} from '@meddleware/walrus-relay'
+} from '@meddleware/walrus-storage-kit'
 import { AppTabNav, CopyableAddress, ExplorerLink, UiNotice, UiTabPanel, UiToolIntro, suiExplorerUrl, safeHref, type AppTab } from '@meddleware/ui'
 // Lightweight URL import — just the wasm asset URL (does not pull the walrus client).
 import walrusWasmUrl from '@mysten/walrus-wasm/web/walrus_wasm_bg.wasm?url'
@@ -29,7 +29,7 @@ import {
   type ExistingCopy,
   type UploadProgress,
   browserStorage,
-} from '@meddleware/walrus-client/flow'
+} from '@meddleware/walrus-storage-client/flow'
 
 // Browser storage that never throws (blocked site data falls back to memory for this page).
 const storage = browserStorage()
@@ -90,7 +90,7 @@ async function onPurchase(): Promise<void> {
   }
 }
 
-// Wire the shared WalrusUpload widget to walrus-client's upload orchestrator and the wallet. The
+// Wire the shared WalrusUpload widget to walrus-storage-client's upload orchestrator and the wallet. The
 // orchestrator registers fresh on every attempt (the relay rejects an old register transaction),
 // and, for a gated relay, `createGatedAccess` keeps the single-use consume resumable: its digest is
 // persisted before the upload, reused after an interruption, cleared once the upload lands, and
@@ -164,7 +164,7 @@ async function findExistingCopy(blobId: string): Promise<ExistingCopy | null> {
   const net = walrusNetwork.value
   if (!address || !net) return null
   try {
-    const { createWalrusClient, fetchOwnedWalrusBlobs } = await import('@meddleware/walrus-client')
+    const { createWalrusClient, fetchOwnedWalrusBlobs } = await import('@meddleware/walrus-storage-client')
     const walrusClient = createWalrusClient({ network: net, wasmUrl: walrusWasmUrl })
     const [sys, owned] = await Promise.all([
       walrusClient.walrus.systemState(),
@@ -193,7 +193,7 @@ async function estimateUploadStorageCost(sizeBytes: number, epochs: number): Pro
   const net = walrusNetwork.value
   if (!net) return null
   try {
-    const { createWalrusClient, estimateStorageCost } = await import('@meddleware/walrus-client')
+    const { createWalrusClient, estimateStorageCost } = await import('@meddleware/walrus-storage-client')
     const walrusClient = createWalrusClient({ network: net, wasmUrl: walrusWasmUrl })
     const cost = await estimateStorageCost(walrusClient, sizeBytes, epochs)
     return cost.totalCost

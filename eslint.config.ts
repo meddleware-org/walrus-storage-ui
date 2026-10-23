@@ -9,7 +9,7 @@ import pluginA11y from 'eslint-plugin-vuejs-accessibility'
 // rules, so accessibility regressions are caught in CI.
 export default defineConfigWithVueTs(
   {
-    name: 'walrus-ui/files-to-lint',
+    name: 'walrus-storage-ui/files-to-lint',
     files: ['**/*.{vue,ts,mts,tsx}'],
   },
 
@@ -20,7 +20,7 @@ export default defineConfigWithVueTs(
   vueTsConfigs.recommended,
 
   {
-    name: 'walrus-ui/overrides',
+    name: 'walrus-storage-ui/overrides',
     rules: {
       // Accept both valid label-association patterns: a label wrapping its
       // control (nesting) or a label[for] pointing at a control[id].

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { CopyableAddress, ExplorerLink } from '@meddleware/ui'
-import type { OwnedBlob } from '@meddleware/walrus-client'
-import { MAX_SINGLE_RESERVATION_EPOCHS, formatCoinAmount } from '@meddleware/walrus-relay'
+import type { OwnedBlob } from '@meddleware/walrus-storage-client'
+import { MAX_SINGLE_RESERVATION_EPOCHS, formatCoinAmount } from '@meddleware/walrus-storage-kit'
 import walrusWasmUrl from '@mysten/walrus-wasm/web/walrus_wasm_bg.wasm?url'
 import type { Executor } from '../wallet.js'
 import { walrusNetwork, walruscanBlobUrl } from '../config.js'
@@ -15,7 +15,7 @@ import {
   clearPendingCertify,
   type PendingCertify,
   browserStorage,
-} from '@meddleware/walrus-client/flow'
+} from '@meddleware/walrus-storage-client/flow'
 
 // Browser storage that never throws (blocked site data falls back to memory for this page).
 const storage = browserStorage()
@@ -29,7 +29,7 @@ const props = defineProps<{
   highlightBlobId?: string | null
 }>()
 
-/** The active Walrus network; the view is only rendered on one (WalrusView gates it). */
+/** The active Walrus network; the view is only rendered on one (WalrusStorageView gates it). */
 function currentNetwork(): 'testnet' | 'mainnet' {
   const net = walrusNetwork.value
   if (!net) throw new Error('Walrus storage is not available on this network.')
@@ -106,7 +106,7 @@ function refreshPending(): void {
 // ── Extend ──────────────────────────────────────────────────────────────────
 // Extend adds storage only (no one-time write cost), so the quote prices the `storageCost` component.
 async function estimateExtendCost(size: number, epochs: number): Promise<bigint | null> {
-  const { createWalrusClient, estimateStorageCost } = await import('@meddleware/walrus-client')
+  const { createWalrusClient, estimateStorageCost } = await import('@meddleware/walrus-storage-client')
   const walrusClient = createWalrusClient({ network: currentNetwork(), wasmUrl: walrusWasmUrl })
   return (await estimateStorageCost(walrusClient, size, epochs)).storageCost
 }
@@ -140,7 +140,7 @@ async function extendBlob(blob: OwnedBlob): Promise<void> {
   busy.value = blob.objectId
   actionStatus.value = { ...actionStatus.value, [blob.objectId]: 'Building transaction…' }
   try {
-    const { createWalrusClient, extendBlobLifetimeTransaction } = await import('@meddleware/walrus-client')
+    const { createWalrusClient, extendBlobLifetimeTransaction } = await import('@meddleware/walrus-storage-client')
     const walrusClient = createWalrusClient({ network: currentNetwork(), wasmUrl: walrusWasmUrl })
     const tx = await extendBlobLifetimeTransaction(walrusClient, blob.objectId, { epochs })
     const executor = await props.buildExecutor()
@@ -164,7 +164,7 @@ async function certifyBlob(blob: OwnedBlob): Promise<void> {
   busy.value = blob.objectId
   actionStatus.value = { ...actionStatus.value, [blob.objectId]: 'Building transaction…' }
   try {
-    const { createWalrusClient, certifyBlobTransaction } = await import('@meddleware/walrus-client')
+    const { createWalrusClient, certifyBlobTransaction } = await import('@meddleware/walrus-storage-client')
     const walrusClient = createWalrusClient({ network: currentNetwork(), wasmUrl: walrusWasmUrl })
     const tx = certifyBlobTransaction(walrusClient, {
       blobId: entry.blobId,

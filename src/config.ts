@@ -5,8 +5,8 @@
 // (unset ⇒ ungated), and its package + PlatformConfig come from the published deployment; the
 // purchase price and payees are read from the chain, never configured.
 import { computed } from 'vue'
-import type { WalrusNetwork, RelayGateConfig } from '@meddleware/walrus-relay'
-import { relayGateConfig } from '@meddleware/walrus-relay'
+import type { WalrusNetwork, RelayGateConfig } from '@meddleware/walrus-storage-kit'
+import { relayGateConfig } from '@meddleware/walrus-storage-kit'
 import { useNetwork } from '@meddleware/wallet-adapter'
 
 /** Build-time env bag. Injectable on the env-reading helpers below purely so unit tests can exercise
@@ -81,7 +81,7 @@ export function accessGate(network: WalrusNetwork, envSource: EnvSource = env): 
       soulbound: envSource[`VITE_ACCESS_GATE_SOULBOUND_${NET}`] === 'true',
     })
   } catch (e) {
-    console.warn(`[walrus-ui] access gate for ${network} disabled: ${e instanceof Error ? e.message : String(e)}`)
+    console.warn(`[walrus-storage-ui] access gate for ${network} disabled: ${e instanceof Error ? e.message : String(e)}`)
     return null
   }
 }

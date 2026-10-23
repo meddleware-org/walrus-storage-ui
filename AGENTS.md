@@ -1,8 +1,8 @@
-# AGENTS.md — @meddleware/walrus-ui
+# AGENTS.md — @meddleware/walrus-storage-ui
 
 ## Package
 
-`@meddleware/walrus-ui` — standalone Vue 3 SPA for Walrus decentralised storage.
+`@meddleware/walrus-storage-ui` — standalone Vue 3 SPA for Walrus decentralised storage.
 
 ## Key files
 
@@ -30,15 +30,15 @@ npm run type-check    # vue-tsc type check
 docker build \
   --build-arg VITE_NETWORK=testnet \
   --build-arg VITE_WALRUS_RELAY_TESTNET=https://relay.example.com \
-  -t walrus-ui:latest .
+  -t walrus-storage-ui:latest .
 ```
 
 ## Version
 
 The version is `package.json`'s; release notes are in `CHANGELOG.md`.
 
-## Relation to walrus-relay
+## Relation to walrus-storage-kit
 
-Depends on `@meddleware/walrus-relay` (the component library). The library provides
+Depends on `@meddleware/walrus-storage-kit` (the component library). The library provides
 `WalrusUpload`, `TipConfigBadge`, `AccessGateCta`, `useAccessGate`, `useWalrusRelay`.
 This app wires them to the connected wallet and the Walrus client.

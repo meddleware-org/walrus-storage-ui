@@ -5,7 +5,7 @@ import {
   expiryLabel,
   maxExtendableEpochs,
 } from '../src/blob-groups.js'
-import type { OwnedBlob } from '@meddleware/walrus-client'
+import type { OwnedBlob } from '@meddleware/walrus-storage-client'
 
 function blob(p: Partial<OwnedBlob> & { objectId: string; blobId: string }): OwnedBlob {
   return { size: 1024, endEpoch: 100, certified: false, ...p }
