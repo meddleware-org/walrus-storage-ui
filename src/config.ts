@@ -8,12 +8,14 @@ import { computed } from 'vue'
 import type { WalrusNetwork, RelayGateConfig } from '@meddleware/walrus-storage-kit'
 import { relayGateConfig } from '@meddleware/walrus-storage-kit'
 import { useNetwork } from '@meddleware/wallet-adapter'
+import { withRuntimeEnv } from '@meddleware/ui'
 
 /** Build-time env bag. Injectable on the env-reading helpers below purely so unit tests can exercise
  *  each branch without depending on Vite's (frozen) `import.meta.env` inlining. */
 export type EnvSource = Record<string, string | undefined>
 
-const env: EnvSource = (import.meta as unknown as { env?: EnvSource }).env ?? {}
+// Build-time values, with the runtime endpoint overrides (/runtime-config.json, ADR-0005) on top.
+const env: EnvSource = withRuntimeEnv((import.meta as unknown as { env?: EnvSource }).env ?? {})
 
 /** The active network (read-only ref). */
 export const network = useNetwork().network

@@ -1,0 +1,16 @@
+# Walrus Storage
+
+> Upload files to Walrus (decentralised blob storage on Sui), list your blobs and extend their lifetime. Uploads can go through Meddleware's NFT-gated upload relay or the public relay.
+
+Address: https://sui-walrus-storage.meddleware.co.uk
+
+## Documentation
+
+- [User guide](https://docs.meddleware.co.uk/blockchain/sui/walrus-storage/)
+- [Reference](https://docs.meddleware.co.uk/blockchain/sui/walrus-storage/reference)
+- [Developer integration](https://dev.meddleware.co.uk/sui/walrus-storage/integration)
+- [Run your own relay](https://dev.meddleware.co.uk/sui/walrus-storage/relay-self-host)
+
+## SDK
+
+- [@meddleware/walrus-storage-client (npm)](https://www.npmjs.com/package/@meddleware/walrus-storage-client)
