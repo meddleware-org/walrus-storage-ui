@@ -7,7 +7,7 @@ owned blobs. Designed as an extensible shell for all Walrus-on-Sui user-facing f
 
 **Package name history:** Previously `@meddleware/walrus-relay-app` in the `walrus-relay-ui`
 monorepo; extracted to its own repo `walrus-storage-ui` v0.1.0. Consumes `@meddleware/walrus-storage-kit`
-(formerly `@meddleware/walrus-relay-ui`).
+(formerly `@meddleware/walrus-relay-ui`, then `@meddleware/walrus-relay`).
 
 ## Architectural invariants
 
