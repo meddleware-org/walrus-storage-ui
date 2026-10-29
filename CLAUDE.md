@@ -90,7 +90,7 @@ Keep each feature as a tab or route so the shell remains composable.
 
 ## Deferred documentation — NOT for the `docs.` website (planned here per Part 0.4)
 
-> Captured for the future **`dev.meddleware.co.uk`** subdomain and white-label offering; excluded
+> Captured for the future **`meddleware.dev`** subdomain and white-label offering; excluded
 > from the user-facing `docs.` site (which covers *what/how/when* for end users only).
 
 ### `dev.` — developer integration (to write later)

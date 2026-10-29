@@ -8,8 +8,8 @@ Address: https://sui-walrus-storage.meddleware.co.uk
 
 - [User guide](https://docs.meddleware.co.uk/blockchain/sui/walrus-storage/)
 - [Reference](https://docs.meddleware.co.uk/blockchain/sui/walrus-storage/reference)
-- [Developer integration](https://dev.meddleware.co.uk/sui/walrus-storage/integration)
-- [Run your own relay](https://dev.meddleware.co.uk/sui/walrus-storage/relay-self-host)
+- [Developer integration](https://meddleware.dev/sui/walrus-storage/integration)
+- [Run your own relay](https://meddleware.dev/sui/walrus-storage/relay-self-host)
 
 ## SDK
 

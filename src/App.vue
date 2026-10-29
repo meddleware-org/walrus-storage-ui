@@ -8,7 +8,7 @@ import WalrusStorageView from './components/WalrusStorageView.vue'
 
 const { mode, set } = useColorMode('dark')
 const DOCS_URL = import.meta.env.VITE_DOCS_URL || 'https://docs.meddleware.co.uk/blockchain/sui/walrus-storage/'
-const DEV_URL  = import.meta.env.VITE_DEV_URL  || 'https://dev.meddleware.co.uk/sui/walrus-storage/'
+const DEV_URL  = import.meta.env.VITE_DEV_URL  || 'https://meddleware.dev/sui/walrus-storage/'
 </script>
 
 <template>
