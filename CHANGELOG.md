@@ -4,6 +4,10 @@ All notable changes to `@meddleware/walrus-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 
+## [0.1.64] - 2026-10-30
+
+- Point the developer-docs and indexer links at the machine zone (ADR-0005); current @meddleware packages.
+
 ## [0.1.63] - 2026-10-24
 
 ### Changed
