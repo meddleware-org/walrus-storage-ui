@@ -1,11 +1,10 @@
 name: Integration (e2e)
 
-# Opt-in browser e2e for the SPA. Kept off the PR path. Today this runs the Playwright smoke suite
-# (builds + serves the app, drives the shell in a real browser) — it needs no localnet.
+# Opt-in browser e2e for the SPA on Chromium. Kept off the PR path (Node CI runs the same suite on five browsers). Today this runs the
+# Playwright suite (builds the e2e build, serves it, drives it in a real browser) — it needs no localnet.
 #
-# The full localnet upload e2e (e2e/upload.localnet.spec.ts) is marked `fixme` pending two follow-ups
-# (a browser-injectable signing wallet + a localnet build target — see that spec). Once they land,
-# un-fixme it and enable the "localnet testbed" block below so the upload path runs against the
+# The full localnet upload e2e (e2e/upload.localnet.spec.ts) is marked `fixme` pending one follow-up: a localnet build target for the
+# SPA (the signing wallet, e2e/wallet.ts, is done — see that spec). Once it lands, un-fixme it and enable the "localnet testbed" block below so the upload path runs against the
 # Docker-Compose testbed from the walrus-storage-client repo.
 on:
   workflow_dispatch:

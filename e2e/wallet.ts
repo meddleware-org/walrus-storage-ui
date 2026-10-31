@@ -1,27 +1,35 @@
-// Test wallet injection for the localnet upload e2e.
-//
-// The app (src/wallet.ts) discovers wallets via @mysten/wallet-standard and filters to those
-// exposing `standard:connect` + `sui:signTransaction` (+ `sui:signPersonalMessage`). To drive a real
-// upload we register a wallet-standard wallet, in the page context, backed by the funded localnet
-// keypair (WALRUS_TEST_SECRET_KEY from `.env.localnet`).
-//
-// IMPLEMENTATION NOTE (remaining work — see upload.localnet.spec.ts):
-// A page.addInitScript runs in the browser, so it cannot import Node modules. The signer must be
-// bundled for the browser. The intended approach is either:
-//   (a) build a tiny signing-wallet bundle (esbuild `@mysten/sui` + a wallet-standard registration
-//       shim) and `page.addInitScript({ path })` it, seeding the key via an env-injected global; or
-//   (b) expose the signer over `page.exposeFunction` (sign in the Node test process using
-//       Ed25519Keypair.fromSecretKey) and have a thin in-page wallet delegate signing to it.
-// Approach (b) keeps the secret in Node and needs no browser bundling — preferred.
+// The signing wallet for the localnet upload e2e. The page's mock wallet (registered by the e2e build) delegates signing to this Node
+// process through `exposeSigner`: the funded localnet key (WALRUS_TEST_SECRET_KEY from `.env.localnet`) never enters the browser.
 import type { Page } from '@playwright/test'
+import { exposeSigner } from '@meddleware/frontend-config/wallet'
+import { SuiGrpcClient } from '@mysten/sui/grpc'
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519'
+import { Transaction } from '@mysten/sui/transactions'
+import { fromBase64, toBase64 } from '@mysten/sui/utils'
 
-/**
- * Register a wallet-standard test wallet in the page, backed by the funded localnet key. Currently a
- * documented stub — see the note above and upload.localnet.spec.ts (marked fixme until this lands).
- */
-export async function installLocalnetWallet(_page: Page): Promise<void> {
-  throw new Error(
-    'installLocalnetWallet is not yet implemented — see the note in e2e/wallet.ts (approach b: ' +
-      'exposeFunction-delegated signing). The localnet upload spec is marked fixme until then.',
+/** Make the page's mock wallet sign as the funded localnet key; resolves the address it connects with. Call before `page.goto`. */
+export async function installLocalnetWallet(page: Page): Promise<string> {
+  const secret = process.env.WALRUS_TEST_SECRET_KEY
+  if (!secret) throw new Error('WALRUS_TEST_SECRET_KEY is not set: source walrus-storage-client/localnet/.env.localnet first.')
+  const keypair = Ed25519Keypair.fromSecretKey(secret)
+  const address = keypair.toSuiAddress()
+  const client = new SuiGrpcClient({ network: 'localnet', baseUrl: process.env.WALRUS_RPC_URL ?? 'http://127.0.0.1:9000' })
+  await exposeSigner(
+    page,
+    {
+      async signTransaction(transactionJson) {
+        const tx = Transaction.from(transactionJson)
+        tx.setSenderIfNotSet(address)
+        const bytes = await tx.build({ client })
+        const { signature } = await keypair.signTransaction(bytes)
+        return { bytes: toBase64(bytes), signature }
+      },
+      async signPersonalMessage(message) {
+        const { signature } = await keypair.signPersonalMessage(fromBase64(message))
+        return { signature }
+      },
+    },
+    { address },
   )
+  return address
 }

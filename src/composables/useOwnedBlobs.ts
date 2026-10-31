@@ -6,14 +6,14 @@
 // `load()` is a no-op when the list is already loaded for the given address on the active network,
 // unless `force` is set
 // (used after an upload/extend, which can create or mutate on-chain blobs).
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import type { OwnedBlob } from '@meddleware/walrus-storage-client'
-// Lightweight URL import — just the wasm asset URL (does not pull the walrus client eagerly).
-import walrusWasmUrl from '@mysten/walrus-wasm/web/walrus_wasm_bg.wasm?url'
+import { errorMessage } from '@meddleware/web-utils'
 import { getSuiClient } from '../wallet.js'
 import { walrusNetwork } from '../config.js'
+import { walrusClient, walrusLib } from '../walrus.js'
 
-const blobs = ref<OwnedBlob[]>([])
+const blobs = shallowRef<OwnedBlob[]>([])
 const currentEpoch = ref(0)
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -58,15 +58,14 @@ async function load(address: string | null, opts: { force?: boolean } = {}): Pro
   loading.value = true
   error.value = null
   try {
-    const { createWalrusClient, fetchOwnedWalrusBlobs } = await import('@meddleware/walrus-storage-client')
+    const [{ fetchOwnedWalrusBlobs }, client] = await Promise.all([walrusLib(), walrusClient(net)])
     const suiClient = getSuiClient()
-    const walrusClient = createWalrusClient({ network: net, wasmUrl: walrusWasmUrl })
     // Blob `endEpoch` is a WALRUS epoch, so compare against the Walrus committee epoch — NOT the
     // Sui system-state epoch (they are different clocks; the Sui epoch, ~1218 vs ~570, made every
     // blob read as "expired").
     const [sys, fetched] = await Promise.all([
-      walrusClient.walrus.systemState(),
-      fetchOwnedWalrusBlobs(suiClient, walrusClient, address),
+      client.walrus.systemState(),
+      fetchOwnedWalrusBlobs(suiClient, client, address),
     ])
     // A newer load (or a switch) took over while this one was in flight: its answer is for another
     // account or network, so drop it without touching the list, the error or `loading`.
@@ -76,7 +75,7 @@ async function load(address: string | null, opts: { force?: boolean } = {}): Pro
     loadedFor.value = key
   } catch (e) {
     if (mine !== latest) return
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorMessage(e)
   } finally {
     if (mine === latest) {
       loading.value = false

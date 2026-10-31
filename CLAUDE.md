@@ -21,12 +21,12 @@ monorepo; extracted to its own repo `walrus-storage-ui` v0.1.0. Consumes `@meddl
   the host's single copy must satisfy every embedded tool, or each gets its own connection.
 - **Thin app.** No accounting logic, no chain state derivation, no financial calculations.
   The app is an orchestration shell. All pricing and economic truth lives on-chain.
-- **Upload flow comes from `@meddleware/walrus-storage-client/flow`.** `performUpload` in `WalrusStorageView.vue`
+- **Upload flow comes from `@meddleware/walrus-storage-client/flow`.** `useStorageUpload` (`src/composables/`)
   wires `runBlobUpload` (fresh register every attempt, certify retry, duplicate precheck) and, for a
-  gated relay, `createGatedAccess` (the consume digest is persisted before the upload, reused after
-  an interruption, re-consumed only on `409 redeemed`). The flow loads `@mysten/walrus` (wasm)
-  lazily, so it stays out of the eager bundle; other `@meddleware/walrus-storage-client` uses here are
-  dynamic imports too.
+  gated relay, the kit's `useGatedUpload` (the consume digest is persisted before the upload, reused after
+  an interruption, re-consumed only on `409 redeemed`; an upload through the public relay never spends a use). The flow loads `@mysten/walrus` (wasm)
+  lazily, so it stays out of the eager bundle; every other `@meddleware/walrus-storage-client` use here goes
+  through `src/walrus.ts` (one dynamic import, one client per network).
 - **One network source.** The network is wallet-adapter's shared `useNetwork()` selector (the
   standalone `main.ts` selects `VITE_NETWORK`). The relay hosts, the gate (one access-gate state per
   Walrus network), the owned-blobs cache (keyed `<network>|<address>`) and the resume keys all follow
@@ -53,12 +53,24 @@ give operators control over their tip ceiling.
 
 | File | Purpose |
 | --- | --- |
-| `src/App.vue` | Standalone shell only: `AppHeader` (+ `TipConfigBadge`, `ColorModeControl`) + `<WalrusStorageView>` + `AppFooter` |
-| `src/components/WalrusStorageView.vue` | Core tool UI (tabs, wallet section, gate state, upload orchestration, `MyBlobs`). Exported for inline embedding. |
+| `src/App.vue` | Standalone shell only: `UiAppShell` with `AppHeader` (+ `TipConfigBadge`, `ColorModeControl`), `<WalrusStorageView>` and `AppFooter` |
+| `src/components/WalrusStorageView.vue` | Core tool UI (tabs, wallet section, one lazily created gate state per network, the upload form, `MyBlobs`). Exported for inline embedding. |
 | `src/index.ts` | Library entry — exports `WalrusStorageView` for the dashboard to render inline |
 | `src/config.ts` | `network` / `walrusNetwork` (wallet-adapter selector), relay hosts, access gate config (`relayGateConfig`) |
-| `src/wallet.ts` | Thin shim over `@meddleware/wallet-adapter` for the selected network; re-exports `useWallet` / `getSuiClient` / `buildExecutor` / `Executor` |
-| `src/components/MyBlobs.vue` | Owned blob listing and lifetime extension |
+| `src/wallet.ts` | `createToolWallet({ requiredFeatures: ['sui:signTransaction'] })` from `@meddleware/wallet-adapter`: `useWallet` / `getSuiClient` / `buildExecutor` / `Executor` |
+| `src/walrus.ts` | The Walrus client and library, loaded on first use and shared (the wasm URL lives here) |
+| `src/composables/useStorageUpload.ts` | Upload orchestration for the `WalrusUpload` widget: the duplicate precheck, `runBlobUpload`, the gated access, the cost estimate |
+| `src/composables/useOwnedBlobs.ts`, `useExtendQuotes.ts`, `src/blob-groups.ts` | The session cache of owned blobs, the Extend price quotes (shown before the wallet opens), grouping by blob id |
+| `src/components/MyBlobs.vue` | Owned blob listing; runs Extend and Certify. Rows are `BlobGroupRows` (a blob and its copies), the amount control is `ExtendControl`; `UploadResultCard` shows an upload's result |
+| `src/e2e.ts`, `src/e2e-data.ts` | End-to-end build only (`--mode e2e`): the mock wallet and a prepared owned-blob list (what the rows cover is in the data file), loaded from `main.ts` behind two static conditions so no other build contains it |
+
+## End-to-end build
+
+`npm run build:e2e` (`VITE_E2E=1 vite build --mode e2e`) is what `npm run test:e2e` serves: the mock wallet shows up in the wallet dialog like an
+extension and My Blobs shows a prepared list (a duplicated blob that is about to expire, a settled one, one waiting to be certified, one at its
+maximum lifetime), so the connected screens are checked and photographed offline. An upload needs a relay and storage nodes, so it is covered by
+`e2e/upload.localnet.spec.ts` (signing through `e2e/wallet.ts`; `fixme` until the SPA has a localnet build target). `vite.config.ts` refuses
+`VITE_E2E` in any other mode.
 
 ## Dual app + library
 

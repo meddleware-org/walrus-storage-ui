@@ -2,23 +2,14 @@
 // (default: the module's frozen import.meta.env), so each branch is exercised deterministically —
 // Vite inlines/freezes import.meta.env at transform time, which makes vi.stubEnv unreliable here.
 import { describe, it, expect } from 'vitest'
-import { useAccessGate } from '@meddleware/walrus-storage-kit'
+import { PUBLIC_WALRUS_RELAY_HOSTS, useAccessGate } from '@meddleware/walrus-storage-kit'
 import {
   relayHosts,
   uploadRelayMaxTipMist,
   accessGate,
-  walruscanBlobUrl,
   DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST,
-  PUBLIC_WALRUS_RELAY_HOSTS,
   type EnvSource,
 } from '../src/config.js'
-
-describe('walruscanBlobUrl', () => {
-  it('builds a network-scoped Walruscan blob URL', () => {
-    expect(walruscanBlobUrl('testnet', 'BLOB123')).toBe('https://walruscan.com/testnet/blob/BLOB123')
-    expect(walruscanBlobUrl('mainnet', 'BLOB123')).toBe('https://walruscan.com/mainnet/blob/BLOB123')
-  })
-})
 
 describe('uploadRelayMaxTipMist', () => {
   it('defaults when the env var is unset', () => {

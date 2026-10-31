@@ -1,14 +1,19 @@
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
+import { inlineMeddleware } from '@meddleware/frontend-config/vitest'
 
-// Unit tests for the app's pure logic (config resolution + the extracted upload orchestration).
-// The Vue plugin is needed because config.ts imports the @meddleware/walrus-storage-kit barrel, which
-// re-exports .vue components. The e2e/ Playwright suite is separate (test:e2e) and excluded here.
+// Component tests. The Vue plugin compiles SFCs for @vue/test-utils; jsdom is the DOM they mount
+// into. `dedupe` keeps @vue/test-utils
+// and the compiled SFCs on a single Vue runtime (else emitted events/reactivity don't cross the
+// instance boundary).
 export default defineConfig({
   plugins: [vue()],
+  resolve: { dedupe: ['vue', '@vue/test-utils'] },
   test: {
-    environment: 'node',
+    environment: 'jsdom',
     include: ['tests/**/*.test.ts'],
-    exclude: ['e2e/**', 'node_modules/**'],
+    exclude: ['node_modules/**'],
+    // @meddleware/ui imports its own .css (each component brings its CSS), which Node cannot import: process it through Vite.
+    server: { deps: { inline: inlineMeddleware } },
   },
 })

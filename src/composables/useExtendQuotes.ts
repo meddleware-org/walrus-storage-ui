@@ -1,7 +1,7 @@
 // Prices an Extend before the wallet opens (audit F12). A row's quote is the WAL cost of adding
 // `epochs`; Extend opens the wallet only for an amount whose quote the user has been shown. A quote is
 // an estimate (labelled `≈`): the wallet and the chain still decide the amount actually paid.
-import { ref } from 'vue'
+import { shallowRef } from 'vue'
 
 export type ExtendQuote =
   | { epochs: number; state: 'ready'; costFrost: bigint }
@@ -12,8 +12,8 @@ export type EstimateExtendCost = (size: number, epochs: number) => Promise<bigin
 
 export function useExtendQuotes(estimate: EstimateExtendCost) {
   /** Latest quote per Blob object id (one per row). */
-  const quotes = ref<Record<string, ExtendQuote>>({})
-  const pricing = ref<Record<string, number>>({})
+  const quotes = shallowRef<Record<string, ExtendQuote>>({})
+  const pricing = shallowRef<Record<string, number>>({})
   /** Per-row request counter: an older answer never replaces a newer amount's quote. */
   const tokens: Record<string, number> = {}
 

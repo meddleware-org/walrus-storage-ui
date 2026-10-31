@@ -1,26 +1,7 @@
-import { defineConfig, devices } from '@playwright/test'
+import { definePlaywrightConfig } from '@meddleware/frontend-config/playwright'
 
-// Browser e2e for the SPA. The smoke spec runs anywhere (builds + serves the app and checks it
-// mounts). The localnet upload spec is gated on WALRUS_LOCALNET (see e2e/upload.localnet.spec.ts).
-const PORT = Number(process.env.E2E_PORT || 4173)
-
-export default defineConfig({
-  testDir: './e2e',
-  fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : 'list',
-  use: {
-    baseURL: `http://localhost:${PORT}`,
-    trace: 'on-first-retry',
-  },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  // Build once, then serve the static bundle. Env for a localnet-targeted build is passed through
-  // from the shell (e.g. after `source ../walrus-storage-client/localnet/.env.localnet` + VITE_* mapping).
-  webServer: {
-    command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
-})
+// Browser tests of the BUILT app (`vite preview` of dist): Chromium locally, all five browser projects in CI (E2E_BROWSERS=all to run
+// them locally). Every request that leaves localhost is refused in the specs, so runs need no network. The screenshot capture
+// (`npm run shots`) is for looking, not asserting.
+// The e2e build (`--mode e2e`) registers a mock wallet and a stub chain, so the connected screens can be checked offline.
+export default definePlaywrightConfig({ port: 4290, command: 'npm run build:e2e && npx vite preview --port 4290 --strictPort' })

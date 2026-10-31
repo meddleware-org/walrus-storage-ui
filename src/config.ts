@@ -6,9 +6,10 @@
 // purchase price and payees are read from the chain, never configured.
 import { computed } from 'vue'
 import type { WalrusNetwork, RelayGateConfig } from '@meddleware/walrus-storage-kit'
-import { relayGateConfig } from '@meddleware/walrus-storage-kit'
+import { PUBLIC_WALRUS_RELAY_HOSTS, relayGateConfig } from '@meddleware/walrus-storage-kit'
 import { useNetwork } from '@meddleware/wallet-adapter'
 import { withRuntimeEnv } from '@meddleware/ui'
+import { errorMessage } from '@meddleware/web-utils'
 
 /** Build-time env bag. Injectable on the env-reading helpers below purely so unit tests can exercise
  *  each branch without depending on Vite's (frozen) `import.meta.env` inlining. */
@@ -25,12 +26,6 @@ export const walrusNetwork = computed<WalrusNetwork | null>(() =>
   network.value === 'testnet' || network.value === 'mainnet' ? network.value : null,
 )
 
-/** Public Mysten relays — the fallback when no operator relay is configured. */
-export const PUBLIC_WALRUS_RELAY_HOSTS: Record<WalrusNetwork, string> = {
-  testnet: 'https://upload-relay.testnet.walrus.space',
-  mainnet: 'https://upload-relay.mainnet.walrus.space',
-}
-
 /** Operator relay host per network (env → public fallback). */
 export const OPERATOR_RELAY_HOSTS: Record<WalrusNetwork, string> = {
   testnet: env.VITE_WALRUS_RELAY_TESTNET || PUBLIC_WALRUS_RELAY_HOSTS.testnet,
@@ -40,14 +35,6 @@ export const OPERATOR_RELAY_HOSTS: Record<WalrusNetwork, string> = {
 /** The operator/public host pair for `useWalrusRelay`. */
 export function relayHosts(network: WalrusNetwork): { operator: string; public: string } {
   return { operator: OPERATOR_RELAY_HOSTS[network], public: PUBLIC_WALRUS_RELAY_HOSTS[network] }
-}
-
-/**
- * Walruscan explorer URL for a blob. A Walrus blob id is not a Sui object, so it links to the
- * Walrus-native explorer rather than a Sui explorer (SuiVision handles Sui entities elsewhere).
- */
-export function walruscanBlobUrl(network: WalrusNetwork, blobId: string): string {
-  return `https://walruscan.com/${network}/blob/${blobId}`
 }
 
 /**
@@ -83,7 +70,7 @@ export function accessGate(network: WalrusNetwork, envSource: EnvSource = env): 
       soulbound: envSource[`VITE_ACCESS_GATE_SOULBOUND_${NET}`] === 'true',
     })
   } catch (e) {
-    console.warn(`[walrus-storage-ui] access gate for ${network} disabled: ${e instanceof Error ? e.message : String(e)}`)
+    console.warn(`[walrus-storage-ui] access gate for ${network} disabled: ${errorMessage(e)}`)
     return null
   }
 }

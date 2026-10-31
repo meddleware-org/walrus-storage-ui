@@ -1,21 +1,14 @@
 // Full localnet upload e2e (connect → upload → aggregator read-back → MyBlobs lists it).
 //
-// This is scaffolded but marked `fixme` because it depends on two pieces that are deliberately NOT
-// yet in place, each a small, well-scoped follow-up:
+// This stays `fixme` for one remaining reason: the SPA has no localnet build target. config.ts accepts only testnet|mainnet, and
+// targeting the localnet testbed needs it to thread `walrusPackageConfig` + `storageNodeUrlScheme:'http'` (the harvested WALRUS_* ids)
+// into createWalrusClient, mirroring the extension already in @meddleware/walrus-storage-client. The signing wallet is done:
+// `installLocalnetWallet` (./wallet.ts) delegates the mock wallet's signing to the funded localnet key.
 //
-//   1. **A browser-injectable signing wallet.** wallet.ts requires a wallet-standard wallet exposing
-//      standard:connect + sui:signTransaction + sui:signPersonalMessage. e2e/wallet.ts documents the
-//      injection approach (page.addInitScript registering a wallet backed by the funded localnet key
-//      WALRUS_TEST_SECRET_KEY). Wiring a real signer into the page context (bundling @mysten/sui for
-//      the init script) is the remaining work.
-//   2. **A localnet build target for the SPA.** App.vue builds its Walrus client from `NETWORK`
-//      (testnet|mainnet). Targeting the localnet testbed needs config.ts to accept `localnet` and
-//      thread `walrusPackageConfig` + `storageNodeUrlScheme:'http'` (the harvested WALRUS_* ids) into
-//      createWalrusClient — mirroring the extension already added to @meddleware/walrus-storage-client.
-//
-// Until both land, this spec self-skips (fixme). Once they do, remove `.fixme` and run it after
-// `source ../walrus-storage-client/localnet/.env.localnet` with the app built against localnet.
+// Once the build target lands, remove `.fixme` and run it after `source ../walrus-storage-client/localnet/.env.localnet` with the app
+// built against localnet (`npm run build:e2e` with the localnet VITE_* values).
 import { test, expect } from '@playwright/test'
+import { connectMockWallet } from '@meddleware/frontend-config/wallet'
 import { installLocalnetWallet } from './wallet.js'
 
 const READY = process.env.WALRUS_LOCALNET === '1' && !!process.env.WALRUS_TEST_SECRET_KEY
@@ -27,7 +20,7 @@ test.describe('walrus-storage-ui localnet upload', () => {
     await installLocalnetWallet(page)
     await page.goto('/')
 
-    await page.getByRole('button', { name: 'Connect wallet' }).click()
+    await connectMockWallet(page)
 
     // Choose a tiny file and run the upload flow.
     const bytes = Buffer.from(`e2e-${Date.now()}`)
