@@ -118,8 +118,11 @@ th {
 .actions {
   min-width: 14em;
 }
-/* When the cell is narrow the toggle wraps under the blob link: keep the two targets 24px apart (WCAG 2.5.8). */
+/* The toggle sits on its own line under the blob link (the cell does not wrap, so left inline it would spill into the next column), and
+ * the two targets stay 24px apart (WCAG 2.5.8). */
 .toggle {
+  display: flex;
+  inline-size: fit-content;
   margin-block-start: var(--space-2xs);
 }
 .at-max {
