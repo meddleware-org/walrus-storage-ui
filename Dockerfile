@@ -50,7 +50,7 @@ ENV VITE_NETWORK=${VITE_NETWORK} \
     VITE_ACCESS_GATE_ID_MAINNET=${VITE_ACCESS_GATE_ID_MAINNET} \
     VITE_UPLOAD_RELAY_MAX_TIP_MIST=${VITE_UPLOAD_RELAY_MAX_TIP_MIST}
 
-RUN npm run build && npm run licenses
+RUN npm run build && npm run check:bundle && npm run licenses
 
 # ── runtime stage ─────────────────────────────────────────────────────────────
 # static-server is a minimal Go binary image — no shell, no package manager.

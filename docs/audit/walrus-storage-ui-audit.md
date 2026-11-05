@@ -3,7 +3,7 @@
 **Classification:** Internal security review
 **Project:** `repos/walrus-storage-ui` — `@meddleware/walrus-storage-ui`, Vue 3 SPA and library for uploading and managing Walrus blobs (`sui-walrus-storage.meddleware.co.uk`; embedded in the dashboard)
 **Project type:** Vue app + UI library
-**Template:** AUDIT_TEMPLATE.md (2026-10-08) + AUDIT_TEMPLATE_VUE.md (2026-10-08) + AUDIT_TEMPLATE_TS.md (2026-10-08) + AUDIT_TEMPLATE_SUI_CLIENT.md (2026-10-08) + AUDIT_TEMPLATE_WALRUS.md (2026-09-30) + AUDIT_TEMPLATE_IMG.md (2026-10-08)
+**Template:** AUDIT_TEMPLATE.md (2026-11-01) + AUDIT_TEMPLATE_VUE.md (2026-11-01) + AUDIT_TEMPLATE_TS.md (2026-11-01) + AUDIT_TEMPLATE_SUI_CLIENT.md (2026-10-08) + AUDIT_TEMPLATE_WALRUS.md (2026-09-30) + AUDIT_TEMPLATE_IMG.md (2026-10-08) + AUDIT_TEMPLATE_A11Y.md (2026-11-01)
 Not triggered: AUTH (the app holds no credential; the access proof is built and signed by walrus-storage-client and access-gate-gateway-client, and the persisted consume digest is a public transaction digest), SEAL, OPS (the integration workflow runs a browser smoke suite only and signs nothing on a real chain), PROXY, WORKERS, GO, RUST, SITE, PLATFORM (the cluster is audited with the workspace).
 **Sui SDK:** `@mysten/sui ^2.33.2` (installed 2.35.0, one copy; `npm ls` single version)   **Transport:** gRPC through wallet-adapter; HTTPS to relays and aggregators
 **Walrus SDK:** `@mysten/walrus ~1.2.32` (installed 1.2.34), `@mysten/walrus-wasm ~0.3.1`; uploads through `@meddleware/walrus-storage-client/flow` 0.0.28 (lazy wasm); relay selection and the gate from `@meddleware/walrus-storage-kit` 0.1.31
@@ -26,7 +26,7 @@ Not triggered: AUTH (the app holds no credential; the access proof is built and 
 **Deployed by:** `post-bootstrap/walrus-storage/overlays/testnet` (base `post-bootstrap/walrus-storage/base/ui`); digest from `config/images.yaml`
 **Build args:** `CSP`, `VITE_NETWORK`, `VITE_WALRUS_RELAY_{TESTNET,MAINNET}`, `VITE_ACCESS_GATE_ID_{TESTNET,MAINNET}`, `VITE_ACCESS_GATE_SOULBOUND_TESTNET`, `VITE_UPLOAD_RELAY_MAX_TIP_MIST` — none secret, none a test switch
 **Deployment status:** npm v0.1.58 (2026-10-18); image `quay.io/meddleware-org/walrus-storage-ui` serving `sui-walrus-storage.meddleware.co.uk` at 0.1.58 (`sha256:0e02f431…e110`; release tag `v0.1.58` = `97c3247`; released, signature verified and deployed 2026-10-18, rollout succeeded; 0.1.57 `sha256:631abc3a…` was deployed 2026-10-09; the live bundle carries `access_gate` `0xd7ddaa94…`, PlatformConfig `0x3f81489d…` and gate `0x316f1bf9…` only, none of the superseded `0xa55789…` / `0xfd6c3b…`, checked 2026-10-18; live headers re-checked 2026-10-18); embedded in dashboard 0.1.85 (requires `^0.1.56`)
-**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-02 · re-verified 2026-10-09 · fixes 2026-10-18 (0.1.58, released and deployed); 0.1.64 re-verified 2026-10-30 (Point the developer-docs and indexer links at the machine zone (ADR-0005); current @meddleware packages); 0.1.65 re-verified 2026-10-30 (Dependency updates (minor and patch groups) and workflow action bumps); 0.1.66 re-verified 2026-10-31 (Gated upload composable, blob table split, accessibility gates)
+**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-02 · re-verified 2026-10-09 · fixes 2026-10-18 (0.1.58, released and deployed); 0.1.64 released 2026-10-30 (Point the developer-docs and indexer links at the machine zone (ADR-0005); current @meddleware packages); 0.1.65 released 2026-10-30 (Dependency updates (minor and patch groups) and workflow action bumps); 0.1.66 released 2026-10-31 (Gated upload composable, blob table split, accessibility gates); frontend-wave delta review 2026-11-01 (real review of the 2026-10-19 → 2026-11-01 changes; see the delta section)
 **Reviewer:** Internal review
 **Severity ceiling:** Medium — the app drives paid uploads and pass purchases with the user's wallet; it holds no keys and decides nothing on its own.
 **Status:** fixes for F11–F14, F16 and F18 in 0.1.58 (2026-10-18; commit `54df3d6`; released and deployed 2026-10-18, signature verified, rollout succeeded); re-verified 2026-10-09 at 0.1.57
@@ -87,6 +87,8 @@ new relay gate (0.1.53). The paywall e2e passed 2026-10-09 against the live dash
 `0x316f1bf9…`, consumed, upload through the Worker).
 
 The severity ceiling stays Medium.
+
+**2026-11-01 update.** The 376-line view was split, the upload orchestration moved into a composable on the kit's gated upload, and the app gained an end-to-end build. The review found that nothing inspected the production build for the harness and that the tarball carried it; both are fixed in 0.1.67 (F19, F20). The extend-quote and upload-retry properties hold (F21) and the sweep passes (F22).
 
 ## Threat model / trust boundaries
 
@@ -371,6 +373,40 @@ reads "npm publish with provenance is not configured"; `@mysten/wallet-standard`
 `dependencies` (wallet-adapter brings its own copy). `AGENTS.md` no longer states a stale version and
 `CLAUDE.md` no longer lists the price as an operator setting.
 
+### Frontend wave delta review (2026-11-01) — 0.1.64 to 0.1.66 reviewed · 0.1.67 prepared
+
+Scope: the changes since the last substantive entry (2026-10-24, which logged the rename and the runtime endpoint config): `WalrusView.vue` (376 lines) became `WalrusStorageView`, `MyBlobs` was split into `BlobGroupRows` and `ExtendControl`, `UploadResultCard` and the new `useStorageUpload` composable (the upload orchestration on the kit's `useGatedUpload`), the wallet binding on `createToolWallet`, the end-to-end build mode (`src/e2e.ts`: a mock wallet and a prepared owned-blob list), the five-browser sweep and Lighthouse CI. The release tool's "re-verified" marks for these releases recorded no review; this section is the review. Read: `useStorageUpload.ts`, `ExtendControl.vue` (the price shown before the wallet opens), `useExtendQuotes.ts`, `src/e2e.ts` and `e2e-data.ts`, `main.ts`, `vite.config.ts`, the workflows, the Dockerfile and the tests. Ran (with the locally packed `ui` 0.1.38, `design-tokens` 0.1.13, `web-utils` 0.0.2, `frontend-config` 0.0.2): the audit gate (0 not allowlisted; the two `extract-zip` advisories are allowlisted until 2027-01-31), `vue-tsc`, lint (stylelint, eslint, html-validate), `vitest` (56 tests), the production build, `check:bundle` on that build (no e2e hook), `npm pack --dry-run` (23 files, 64 KiB, no e2e file), and the browser suite on Chromium, Firefox, WebKit, a Pixel 7 and an iPhone 14 with the CI font (DejaVu Sans through fontconfig): **400 passed in 8.3 minutes**.
+
+### F19 — No production-artefact scan for the end-to-end harness
+**Severity:** Medium   **Disposition:** RESOLVED
+**Where:** `package.json` (no bundle check), `Dockerfile`, `.github/workflows/node-ci.yml`; `vite.config.ts` and `src/main.ts` held the only controls.
+**Issue:** the e2e build registers a mock wallet and a prepared list of owned blobs. The controls were the entry's static condition (`MODE === 'e2e' && VITE_E2E === '1'`) and `assertE2eOnlyInE2eMode`; neither inspected the built output (base §B.2 *Test-only modes*, VUE §A *Test hooks*).
+**Impact:** a later change to the entry file, a bundler upgrade that stops folding the static condition, or a mis-set mode in an image build would ship a mock wallet in a signing app and nothing but a reviewer would notice
+**Remediation / evidence:** the shared `check-prod-bundle` of `@meddleware/frontend-config` 0.0.2 runs after the production build in `node-ci.yml` and in the Dockerfile (`RUN npm run build && npm run check:bundle && npm run licenses`); a CI step runs `VITE_E2E=1 vite build` in production mode and fails the job if it succeeds. The production build is clean; the e2e build the browser suite leaves in `dist/` fails the scan on the wallet hooks (the same positive control as access-gate-ui). 0.1.67.
+
+### F20 — The published tarball carried the end-to-end modules
+**Severity:** Low   **Disposition:** RESOLVED
+**Where:** `package.json` `files` (`src`); the e2e modules are `src/e2e.ts` and `src/e2e-data.ts`.
+**Issue:** the package ships `src/` as a library, and `src/e2e-data.ts`, `src/e2e.ts` — the mock wallet installer and its data — were in it. Nothing imports them from the library entry, but they are test-only code in a published artefact (TS lens B.TS-1; base §B.2 test-only modes).
+**Impact:** consumers download test doubles they never load; no behavioural impact
+**Remediation / evidence:** `"!src/e2e*.ts"` in `files` (`npm pack --dry-run`: 23 files, 64 KiB, no e2e file); `node-ci.yml` asserts that no packed file path matches `e2e`.
+
+### F21 — Positive: an extension is priced and shown before the wallet opens, and a retry never registers a second time or burns a second use
+**Severity:** Positive
+**Where:** `src/components/ExtendControl.vue`, `src/composables/useStorageUpload.ts`
+**Evidence:** `ExtendControl` prices the chosen number of epochs on the first press (a labelled estimate, `≈`) and emits `extend` only after `shownBeforeSigning` for that exact amount (audit F12 still holds); an old quote is cleared when the blob's end epoch changes. `useStorageUpload` registers fresh on every attempt (the relay rejects an old register transaction), keeps a pending certificate in storage so a dismissed certify can be finished from My Blobs, and for a gated relay uses the kit's `useGatedUpload` (the consume is persisted before the upload, reused after an interruption, spent anew only after the gateway reports it redeemed; an upload through the public relay never spends a use). The duplicate precheck is best-effort by design: if it cannot read the wallet's blobs the upload proceeds (a documented design choice in CLAUDE.md and the component).
+
+### F22 — Positive: the shared sweep covers every screen and passes on five browsers with the CI font
+**Severity:** Positive
+**Where:** e2e/a11y.spec.ts (`defineA11ySuite`, AAA `gate`)
+**Evidence:** five states — disconnected, the wallet dialog, the upload form, My Blobs and a blob's copies — each at AA and AAA (gating) in all ten theme × season looks, at 320 px, 200% text, in forced colours, under reduced motion and by keyboard, on five browser projects: 400 tests passed with the CI font. The upload itself needs a relay and storage nodes and is covered by the opt-in localnet spec (`fixme` until a localnet build target exists), not by the sweep.
+
+### Delta notes (A11Y lens, `AUDIT_TEMPLATE_A11Y.md`)
+- **Support promise:** the shared browserslist (`@meddleware/frontend-config/browserslist-config`); build target through `viteTarget()`; compat lints on.
+- **Accessibility gates:** the shared sweep over five states (axe AA and AAA `gate`; 320 px reflow; 200% text; forced colours; reduced motion; keyboard incl. focus not obscured), Lighthouse CI on the production build, five browser projects in CI.
+- **Known exceptions:** none disabled; the 44 px enhanced target size, link purpose, reading order and screen-reader announcements are reviewed from screenshots (`npm run shots`), not automated.
+- **Supply chain:** `.github/audit-gate.mjs` with two dated `extract-zip` allowlist entries (dev-only, via `@lhci/cli`, expiry 2027-01-31, D104; OPERATOR_TASKS.md) and the `basic-ftp`/`tmp`/`zod` overrides; Dependabot (npm, Actions, Docker); `@meddleware/frontend-config` is a dev dependency (its audit F5).
+
 ## Section A — Invariant verification matrix
 
 | # | Invariant | Enforced at | Proven by | Status |
@@ -625,3 +661,4 @@ None.
 - 2026-10-22 (audit close-out) — release 0.1.61 (`v0.1.61` = `43c446b`; `Publish (Docker)` succeeded). Dependencies: `@meddleware/walrus-storage-client` `^0.0.30` (the gated flow passes the gateway's real challenge expiry; access-gate-gateway-client 0.0.18 rules; walrus-storage-client F26), `@meddleware/walrus-storage-kit` `^0.1.33`, `@meddleware/access-gate-client` `^0.0.10` (a stale indexer head page, `polledAt` older than 60 s, now falls back to the node; sui-indexer F19). Image base: static-server 0.1.11 (Go 1.26.10 standard library, CVE-2026-111943, so the scan-before-sign gate passes; static-server F13). No disposition change. Not re-run in this pass: the unit tests, the build and the audit gate (the tag's own CI and publish runs succeeded).
 - 2026-10-24 — repository renamed from `walrus-ui` to `walrus-storage-ui` (workspace naming convention, `docs/architecture/ADR-0003-naming.md`): package, image, host and path names updated throughout. No finding, disposition or evidence changed.
 - 2026-10-24 — machine-zone readiness (workspace ADR-0005, C1z): endpoints read through `@meddleware/ui` `withRuntimeEnv`, loaded from a same-origin `/runtime-config.json` (strict key allowlist, https-only, no credentials/query/fragment; a missing, non-JSON or invalid file keeps the build values) before the app modules load; own `robots.txt` and `llms.txt`. Verified: one build served by static-server 0.1.11 with and without the file calls the configured indexer / falls back, 0 CSP violations, 0 page errors (headless Chromium).
+- 2026-11-01 — frontend-wave delta review of 0.1.64 to 0.1.66. Read the upload orchestration, the extend control and quotes, the e2e harness, build configuration, workflows and Dockerfile; ran the gates and the five-browser suite with the CI font (400 passed in 8.3 minutes). Found and fixed F19 (nothing inspected the production artefact for the e2e harness: shared `check-prod-bundle` in CI and the image build) and F20 (the e2e modules in the published tarball); F21–F22 recorded as Positive. The release tool's bare "re-verified" marks were reworded to "released". `**Template:**` dates reconciled to the 2026-11-01 registry (TS/VUE changes add rows; the VUE colour row moved to A11Y, applied in full here) with no disposition change.
