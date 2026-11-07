@@ -14,7 +14,7 @@ import {
   type ExistingCopy,
   type UploadProgress,
 } from '@meddleware/walrus-storage-client/flow'
-import { network, relayHosts, uploadRelayMaxTipMist, walrusNetwork } from '../config.js'
+import { availability, relayHosts, uploadRelayMaxTipMist, walrusNetwork } from '../config.js'
 import { buildExecutor, getSuiClient, useWallet } from '../wallet.js'
 import { walrusClient, walrusLib, walrusWasmUrl } from '../walrus.js'
 
@@ -59,7 +59,7 @@ export function useStorageUpload(gate: () => AccessGateState) {
   async function performUpload(bytes: Uint8Array, opts: UploadOptions): Promise<UploadResult> {
     if (!account.value) throw new Error('Connect your wallet first.')
     const net = walrusNetwork.value
-    if (!net) throw new Error(`Walrus storage is not available on ${network.value}.`)
+    if (!net) throw new Error(availability.value.message ?? 'Walrus storage is not available here.')
     const executor = await buildExecutor()
     const address = account.value.address
     const access = accessFor({

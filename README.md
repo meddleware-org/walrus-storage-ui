@@ -3,13 +3,13 @@
 [![License: 0BSD](https://img.shields.io/badge/license-0BSD-blue)](LICENSE)
 
 A Vue 3 SPA for uploading and managing blobs on [Walrus](https://walrus.xyz) decentralised
-storage on Sui. Supports NFT-gated operator relays (commission-enforced on-chain via
+storage on Sui. Supports NFT-gated Meddleware relays (commission-enforced on-chain via
 `access_gate`) with automatic fallback to the public Mysten relay.
 
 ## Features
 
 - Connect any Sui wallet (wallet-standard)
-- Select between operator relay (supports the app) and public relay (free)
+- Select between the Meddleware relay (supports the app) and the public relay (free)
 - Upload blobs through an NFT-gated or open relay
 - View and extend your owned Walrus blobs
 - Two-approval upload flow: register tx → upload → certify tx
@@ -32,16 +32,21 @@ All `VITE_*` vars are baked into the static bundle at build time.
 | Variable | Default | Description |
 | --- | --- | --- |
 | `VITE_NETWORK` | `testnet` | Network the standalone build selects (`testnet` or `mainnet`); embedded, the host's selector rules |
-| `VITE_WALRUS_RELAY_TESTNET` | Public Mysten relay | Operator relay URL for testnet |
-| `VITE_WALRUS_RELAY_MAINNET` | Public Mysten relay | Operator relay URL for mainnet |
+| `VITE_WALRUS_RELAY_TESTNET` | Public Mysten relay | Meddleware relay URL for testnet (https; plain http only on localhost) |
+| `VITE_WALRUS_RELAY_MAINNET` | Public Mysten relay | Meddleware relay URL for mainnet (https; plain http only on localhost) |
 | `VITE_ACCESS_GATE_ID_TESTNET` | — | Gate object ID (testnet; unset = no gate) |
 | `VITE_ACCESS_GATE_SOULBOUND_TESTNET` | `false` | `true` if NFTs are soulbound |
 | `VITE_ACCESS_GATE_ID_MAINNET` | — | Gate object ID (mainnet) |
 | `VITE_UPLOAD_RELAY_MAX_TIP_MIST` | `5000000` | Max relay tip cap in MIST (0.005 SUI) |
 
 The `access_gate` package and `PlatformConfig` come from the published deployment
-(`relayGateConfig` in `@meddleware/walrus-storage-kit`) — operators only configure the values listed
+(`relayGateConfig` in `@meddleware/walrus-storage-kit`) — a deployment only configures the values listed
 above.
+
+A setting the app cannot serve (a relay URL that is not https, a gate id that is not an object id) makes that network
+read "not available here right now" to a person; the variable is named only in the browser console. A gate id set for a
+network with no recorded `access_gate` deployment makes the network "not available on <network>" (it would otherwise be
+served without the pass). Networks to switch to are the ones that pass the same checks.
 
 ## Docker build
 

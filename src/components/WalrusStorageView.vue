@@ -9,7 +9,7 @@ import { WalletGuard } from '@meddleware/wallet-adapter'
 import { AccessGateCta, WalrusUpload, useAccessGate, type WalrusNetwork } from '@meddleware/walrus-storage-kit'
 import type { ExistingCopy } from '@meddleware/walrus-storage-client/flow'
 import { buildExecutor, getSuiClient, useWallet } from '../wallet.js'
-import { accessGate, network, relayHosts, walrusNetwork } from '../config.js'
+import { accessGate, availability, network, relayHosts, walrusNetwork } from '../config.js'
 import { useOwnedBlobs } from '../composables/useOwnedBlobs.js'
 import { useStorageUpload, type UploadResult } from '../composables/useStorageUpload.js'
 import MyBlobs from './MyBlobs.vue'
@@ -97,7 +97,7 @@ function onSettled(): void {
     <h2 id="walrus-title">Walrus storage</h2>
     <UiToolIntro>Upload and manage blobs on Walrus decentralised storage ({{ network }}).</UiToolIntro>
 
-    <UiNotice v-if="!walrusNetwork" type="info" :message="`Walrus storage is not available on ${network}. Switch to testnet or mainnet.`" />
+    <UiNotice v-if="!walrusNetwork" type="info" :message="availability.message ?? ''" />
     <template v-else>
       <AppTabNav v-model="activeTab" :tabs="TABS" id-prefix="walrus" aria-label="Feature tabs" />
 

@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest'
 import { PUBLIC_WALRUS_RELAY_HOSTS, useAccessGate } from '@meddleware/walrus-storage-kit'
 import {
+  availabilityOf,
   relayHosts,
   uploadRelayMaxTipMist,
   accessGate,
@@ -105,5 +106,65 @@ describe('accessGate with useAccessGate', () => {
     const state = useAccessGate({ network: 'testnet', gate: accessGate('testnet', {}), getClient })
     expect(state.gateConfigured).toBe(false)
     expect(state.hasAccess.value).toBe(true)
+  })
+})
+
+describe('availabilityOf', () => {
+  // A gate id of the right shape; whether it is a gate is the chain's to say.
+  const GATE = `0x${'a'.repeat(64)}`
+
+  it('is usable on testnet and mainnet with nothing set (the public relay, ungated)', () => {
+    expect(availabilityOf('testnet', {})).toEqual({ usable: true, message: null, cause: null })
+    expect(availabilityOf('mainnet', {})).toEqual({ usable: true, message: null, cause: null })
+  })
+
+  it('is not offered where Walrus has no network, and offers the networks that work', () => {
+    const a = availabilityOf('localnet', {})
+    expect(a.usable).toBe(false)
+    expect(a.message).toBe('Walrus storage is not available on localnet. Switch to testnet or mainnet.')
+    expect(a.cause).toBeNull() // nothing is wrong
+  })
+
+  it('a gate configured where no access_gate deployment is recorded is not offered (never silently ungated); the cause names the setting', () => {
+    const a = availabilityOf('mainnet', { VITE_ACCESS_GATE_ID_MAINNET: GATE })
+    expect(a).toEqual({
+      usable: false,
+      message: 'Walrus storage is not available on mainnet. Switch to testnet.',
+      cause: 'VITE_ACCESS_GATE_ID_MAINNET is set but no access_gate deployment is recorded for mainnet',
+    })
+  })
+
+  it('a gate id that is not an object id is a fault: "not available right now", the setting only in the cause', () => {
+    const a = availabilityOf('testnet', { VITE_ACCESS_GATE_ID_TESTNET: '0xgate' })
+    expect(a.usable).toBe(false)
+    expect(a.message).toBe('Walrus storage is not available here right now. Try again later or switch to mainnet.')
+    expect(a.cause).toContain('VITE_ACCESS_GATE_ID_TESTNET')
+  })
+
+  it('a valid gate id on a network with a deployment is usable', () => {
+    expect(availabilityOf('testnet', { VITE_ACCESS_GATE_ID_TESTNET: GATE }).usable).toBe(true)
+  })
+
+  it('a relay host that is not https is a fault the person reads as "right now"; the cause names the setting and the value', () => {
+    const a = availabilityOf('mainnet', { VITE_WALRUS_RELAY_MAINNET: 'http://relay.example.com' })
+    expect(a.usable).toBe(false)
+    expect(a.message).toBe('Walrus storage is not available here right now. Try again later or switch to testnet.')
+    expect(a.cause).toContain('VITE_WALRUS_RELAY_MAINNET')
+    expect(a.cause).toContain('http://relay.example.com')
+  })
+
+  it('an unparseable relay host is a fault too, and a loopback http host is allowed', () => {
+    expect(availabilityOf('testnet', { VITE_WALRUS_RELAY_TESTNET: 'not a url' }).usable).toBe(false)
+    expect(availabilityOf('testnet', { VITE_WALRUS_RELAY_TESTNET: 'http://localhost:3000' }).usable).toBe(true)
+  })
+
+  it('never names a setting, a record or "operator" to the person', () => {
+    const texts = [
+      availabilityOf('localnet', {}).message,
+      availabilityOf('mainnet', { VITE_ACCESS_GATE_ID_MAINNET: GATE }).message,
+      availabilityOf('testnet', { VITE_ACCESS_GATE_ID_TESTNET: 'x' }).message,
+      availabilityOf('testnet', { VITE_WALRUS_RELAY_TESTNET: 'http://x.example' }).message,
+    ]
+    for (const text of texts) expect(text).not.toMatch(/VITE_|operator|deployment|access_gate|configur|https/i)
   })
 })

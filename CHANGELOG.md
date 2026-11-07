@@ -1,8 +1,24 @@
 # Changelog
 
-All notable changes to `@meddleware/walrus-ui` are documented here.
+All notable changes to `@meddleware/walrus-storage-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
+
+## [0.1.69] - 2026-11-07
+
+### Changed
+
+- Words for a person: the page title is "Walrus Assets · Meddleware" (it was "Walrus Uploader · MeddleWare") and the description says what the app does for its reader. The licence holder is spelled Meddleware.
+- Where Walrus storage cannot be used the page says so in plain words and shows no tool: "not available on localnet" (and the networks to switch to), or "not available here right now" for a relay address that is not https or a gate id that is not an object id. A gate id set for a network with no recorded `access_gate` deployment makes that network unavailable instead of silently serving it without the pass. Which networks to suggest comes from the same checks, not from prose. The variable names go to the browser console only.
+- A failed owned-blob load says "Your blobs could not be loaded. Check your connection and press Refresh."; the cause goes to the console.
+- `@meddleware/walrus-storage-kit` ^0.1.38 (the access-pass prompt reads "This upload relay" and "Gate owner receives"; the estimated relay fee is exact), `@meddleware/ui` ^0.1.40, `@meddleware/web-utils` ^0.0.3, `@meddleware/wallet-adapter` ^0.0.22 (peer range now `>=0.0.22 <0.2.0`).
+
+### Internal
+
+- The standalone shell is the shared `AppToolShell` (the relay badge stays in its `actions` slot); the network comes from `selectBuiltNetwork`.
+- `@meddleware/frontend-config` ^0.0.7: `vite.config.ts` is `meddlewareApp`, `vitest.config.ts` is `vueTestConfig`, `tsconfig.json` extends the shared base; the local audit gate and licence scripts are replaced by `mw-audit-gate` and `mw-third-party-licenses`; `mw-sync --check` and a CSP inline-script check (`npm run check:csp`, also in the image build) run in CI. The `"meddleware"` section of package.json declares the CSP profile (`chain-wasm`) and Lighthouse use.
+- Removed the unused `public/CNAME`, `public/_headers` and `public/_redirects` (the image is served by static-server, which sets the headers and the SPA fallback). `AGENTS.md` points to `CLAUDE.md`.
+- New tests: `availability`, the availability cases of `config`, the unavailable view, the shell, the plain load failure and a wording test over `index.html` and every template.
 
 ## [0.1.68] - 2026-11-06
 

@@ -12,9 +12,9 @@
 #
 # Build args (VITE_* are baked into the static bundle at build time):
 #   VITE_NETWORK                       — "testnet" | "mainnet"  (default: testnet)
-#   VITE_WALRUS_RELAY_TESTNET          — operator relay URL for testnet
-#   VITE_WALRUS_RELAY_MAINNET          — operator relay URL for mainnet (optional)
-#   VITE_ACCESS_GATE_ID_{NET}          — operator's Gate shared object ID (from create_gate)
+#   VITE_WALRUS_RELAY_TESTNET          — Meddleware relay URL for testnet
+#   VITE_WALRUS_RELAY_MAINNET          — Meddleware relay URL for mainnet (optional)
+#   VITE_ACCESS_GATE_ID_{NET}          — the gate owner's Gate shared object ID (from create_gate)
 #   VITE_ACCESS_GATE_SOULBOUND_{NET}   — "true" if soulbound (optional, default false)
 #   VITE_UPLOAD_RELAY_MAX_TIP_MIST     — max relay tip cap in MIST (optional, default 5000000; leave the repository variable unset)
 # packageId and platformConfigId are hardcoded in @meddleware/walrus-storage-kit constants.
@@ -51,6 +51,9 @@ ENV VITE_NETWORK=${VITE_NETWORK} \
     VITE_UPLOAD_RELAY_MAX_TIP_MIST=${VITE_UPLOAD_RELAY_MAX_TIP_MIST}
 
 RUN npm run build && npm run check:bundle && npm run licenses
+ARG CSP
+# The CSP has no 'unsafe-inline' for scripts: the build fails if dist/ ever carries an inline <script>.
+RUN npx mw-check-csp-inline "${CSP}" dist
 
 # ── runtime stage ─────────────────────────────────────────────────────────────
 # static-server is a minimal Go binary image — no shell, no package manager.

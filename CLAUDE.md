@@ -17,7 +17,7 @@ monorepo; extracted to its own repo `walrus-storage-ui` v0.1.0. Consumes `@meddl
   fine; `@mysten/sui/jsonRpc` is banned outright), building transactions and chain reads. URL
   bindings on native elements must go through `safeHref`, `safeIcon`, `suiExplorerUrl` or
   `walruscanBlobUrl`. Do not disable it — move the logic into the domain client instead.
-- **One wallet-adapter in a host.** Declare `@meddleware/wallet-adapter` as a peerDependency (`>=0.0.12 <0.2.0`, plus a devDependency):
+- **One wallet-adapter in a host.** Declare `@meddleware/wallet-adapter` as a peerDependency (`>=0.0.22 <0.2.0`, plus a devDependency; 0.0.22 has `selectBuiltNetwork` and `explorerNetwork`):
   the host's single copy must satisfy every embedded tool, or each gets its own connection.
 - **Thin app.** No accounting logic, no chain state derivation, no financial calculations.
   The app is an orchestration shell. All pricing and economic truth lives on-chain.
@@ -28,9 +28,17 @@ monorepo; extracted to its own repo `walrus-storage-ui` v0.1.0. Consumes `@meddl
   lazily, so it stays out of the eager bundle; every other `@meddleware/walrus-storage-client` use here goes
   through `src/walrus.ts` (one dynamic import, one client per network).
 - **One network source.** The network is wallet-adapter's shared `useNetwork()` selector (the
-  standalone `main.ts` selects `VITE_NETWORK`). The relay hosts, the gate (one access-gate state per
+  standalone `main.ts` selects `VITE_NETWORK` through `selectBuiltNetwork`). The relay hosts, the gate (one access-gate state per
   Walrus network), the owned-blobs cache (keyed `<network>|<address>`) and the resume keys all follow
-  it. On a network without Walrus (localnet) the view shows a notice.
+  it. On a network where Walrus storage cannot be used the view shows a notice and renders no tool (next section).
+- **What a person reads (D117).** `availabilityOf(net)` in `src/config.ts` decides whether a network is usable: it is not
+  offered on localnet, nor where a gate id is configured but no `access_gate` deployment is recorded (serving it ungated would silently
+  skip the pass), and it is "not available right now" when a gate id is not an object id or a relay host is not https. The words are
+  in `src/availability.ts` (`notAvailableOn`, `notAvailableNow`; the networks to switch to are the ones that pass the same checks, so they
+  follow the records and the hosts, never prose); the technical cause (which `VITE_*`) is `Availability.cause`, logged once with
+  `console.error`. `walrusNetwork` is null where the network is unusable, so the badge, the gate state, the upload and the owned-blob
+  list stay inert. A failed owned-blob load is likewise `LOAD_FAILED` on the page and the cause in the console. `tests/wording.test.ts`
+  holds every template and `index.html` to no "operator", no `MeddleWare`, no `VITE_*`.
 - **Wallet-agnostic + shared.** Wallet connections go through `src/wallet.ts`, a thin shim over
   the shared `@meddleware/wallet-adapter` singleton — not any specific wallet extension. The
   singleton means that when `WalrusStorageView` is embedded in the dashboard alongside other tool views,
@@ -38,25 +46,26 @@ monorepo; extracted to its own repo `walrus-storage-ui` v0.1.0. Consumes `@meddl
   wallet-standard implementation.
 - **Commission enforcement is in the library.** `accessGate()` in `src/config.ts` builds the gate
   with `relayGateConfig` from `@meddleware/walrus-storage-kit`, which takes the package and
-  `PlatformConfig` from the published deployment. Operators set only the gate id and soulbound flag; the price and payees are
+  `PlatformConfig` from the published deployment. The deployment sets only the gate id and soulbound flag; the price and payees are
   read from the chain and shown by `AccessGateCta` before the wallet opens (there is no price variable).
   Do not override the package or PlatformConfig here. `useAccessGate` throws for any other gate.
 
 ## Env var: uploadRelayMaxTipMist
 
 `src/config.ts` reads `VITE_UPLOAD_RELAY_MAX_TIP_MIST` (baked in at build time) with a 5,000,000
-MIST (0.005 SUI) fallback — the workspace-wide ceiling, ~8× the operator relay's worst-case tip. This is a cap on the relay tip payment, not a fixed charge — the
+MIST (0.005 SUI) fallback — the workspace-wide ceiling, ~8× the Meddleware relay's worst-case tip. This is a cap on the relay tip payment, not a fixed charge — the
 relay asks for the minimum; this prevents overpayment. Set it via the Docker `--build-arg` to
-give operators control over their tip ceiling.
+give a deployment control over its tip ceiling.
 
 ## Key source files
 
 | File | Purpose |
 | --- | --- |
-| `src/App.vue` | Standalone shell only: `UiAppShell` with `AppHeader` (+ `TipConfigBadge`, `ColorModeControl`), `<WalrusStorageView>` and `AppFooter` |
+| `src/App.vue` | Standalone shell only: `AppToolShell` (title, docs/dev links) with the relay's `TipConfigBadge` in its `actions` slot, around `<WalrusStorageView>` |
 | `src/components/WalrusStorageView.vue` | Core tool UI (tabs, wallet section, one lazily created gate state per network, the upload form, `MyBlobs`). Exported for inline embedding. |
 | `src/index.ts` | Library entry — exports `WalrusStorageView` for the dashboard to render inline |
-| `src/config.ts` | `network` / `walrusNetwork` (wallet-adapter selector), relay hosts, access gate config (`relayGateConfig`) |
+| `src/config.ts` | `network` (wallet-adapter selector), `availabilityOf` / `availability` / `walrusNetwork` (null where unusable), relay hosts (`OPERATOR_RELAY_HOSTS`, the code name of the Meddleware relay per network), access gate config (`relayGateConfig`) |
+| `src/availability.ts` | The two messages a person reads when a network cannot be used (`notAvailableOn`, `notAvailableNow`) |
 | `src/wallet.ts` | `createToolWallet({ requiredFeatures: ['sui:signTransaction'] })` from `@meddleware/wallet-adapter`: `useWallet` / `getSuiClient` / `buildExecutor` / `Executor` |
 | `src/walrus.ts` | The Walrus client and library, loaded on first use and shared (the wasm URL lives here) |
 | `src/composables/useStorageUpload.ts` | Upload orchestration for the `WalrusUpload` widget: the duplicate precheck, `runBlobUpload`, the gated access, the cost estimate |
@@ -69,8 +78,16 @@ give operators control over their tip ceiling.
 `npm run build:e2e` (`VITE_E2E=1 vite build --mode e2e`) is what `npm run test:e2e` serves: the mock wallet shows up in the wallet dialog like an
 extension and My Blobs shows a prepared list (a duplicated blob that is about to expire, a settled one, one waiting to be certified, one at its
 maximum lifetime), so the connected screens are checked and photographed offline. An upload needs a relay and storage nodes, so it is covered by
-`e2e/upload.localnet.spec.ts` (signing through `e2e/wallet.ts`; `fixme` until the SPA has a localnet build target). `vite.config.ts` refuses
+`e2e/upload.localnet.spec.ts` (signing through `e2e/wallet.ts`; `fixme` until the SPA has a localnet build target). `vite.config.ts` (`meddlewareApp`) refuses
 `VITE_E2E` in any other mode.
+
+## Shared tooling
+
+`@meddleware/frontend-config` supplies the Vite and Vitest configuration (`meddlewareApp`, `vueTestConfig`), the tsconfig base, and the `mw-*` bins: `mw-audit-gate`, `mw-third-party-licenses`, `mw-check-csp-inline` (`npm run check:csp`, also in the Dockerfile) and `mw-sync` (`npx mw-sync --check` in CI keeps dependabot.yml, .dockerignore, the postcss/stylelint configs, the audit allowlist and the Dockerfile CSP equal to the `chain-wasm` profile; `--write` repairs them). The `"meddleware"` key in package.json declares the kind, CSP profile and Lighthouse use. The only app-specific part of `vite.config.ts` is keeping `@mysten/walrus` and its wasm out of dependency pre-bundling.
+
+## Relation to walrus-storage-kit
+
+`@meddleware/walrus-storage-kit` (the component library) provides `WalrusUpload`, `TipConfigBadge`, `AccessGateCta`, `useAccessGate`, `useWalrusRelay` and `useGatedUpload`; this app wires them to the connected wallet and the Walrus client. The image is built from the repo root (`Dockerfile`; build arguments are listed in it and in `README.md`), and the kit resolves from the npm registry, so it must be published first.
 
 ## Dual app + library
 
@@ -97,6 +114,7 @@ Keep each feature as a tab or route so the shell remains composable.
 - Do not derive exchange rates, fees, or NAV in this app.
 - Do not add wallet-library-specific code outside `src/wallet.ts`.
 - Do not hardcode `VITE_UPLOAD_RELAY_MAX_TIP_MIST` — read it from `import.meta.env`.
+- Do not show a person a build variable, a script or "operator" (D117): put the words in `src/availability.ts` and the cause in the console. `tests/wording.test.ts` holds every template to it.
 
 ---
 
@@ -111,10 +129,10 @@ Keep each feature as a tab or route so the shell remains composable.
   shared `@meddleware/wallet-adapter` context; the dual app+library contract and why the core UI stays
   shell-free. The SDK-level integration story lives in `@meddleware/walrus-storage-client`.
 
-### White-label operator path (to write later)
+### White-label path (to write later)
 
-- Deploying walrus-storage-ui against an operator's **own relay + tip ceiling**: the `VITE_*` build args
+- Deploying walrus-storage-ui against a team's **own relay + tip ceiling**: the `VITE_*` build args
   (`VITE_UPLOAD_RELAY_MAX_TIP_MIST`, relay hosts, network) and the Docker `--build-arg` seams;
   branding via `@meddleware/design-tokens` + the `AppHeader` slot. Note that commission routing is
-  fixed by `relayGateConfig` in `@meddleware/walrus-storage-kit` (the published access-gate deployment) and is not an operator
-  knob here.
+  fixed by `relayGateConfig` in `@meddleware/walrus-storage-kit` (the published access-gate deployment) and is not a
+  deployment setting here.

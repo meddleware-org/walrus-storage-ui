@@ -8,10 +8,12 @@
 // (used after an upload/extend, which can create or mutate on-chain blobs).
 import { ref, shallowRef } from 'vue'
 import type { OwnedBlob } from '@meddleware/walrus-storage-client'
-import { errorMessage } from '@meddleware/web-utils'
 import { getSuiClient } from '../wallet.js'
 import { walrusNetwork } from '../config.js'
 import { walrusClient, walrusLib } from '../walrus.js'
+
+/** What a person reads when the list could not be loaded. */
+export const LOAD_FAILED = 'Your blobs could not be loaded. Check your connection and press Refresh.'
 
 const blobs = shallowRef<OwnedBlob[]>([])
 const currentEpoch = ref(0)
@@ -75,7 +77,9 @@ async function load(address: string | null, opts: { force?: boolean } = {}): Pro
     loadedFor.value = key
   } catch (e) {
     if (mine !== latest) return
-    error.value = errorMessage(e)
+    // The page says what the person can do; the technical cause (an RPC or decoding error) goes to the console.
+    console.error('walrus-storage-ui: could not load the owned blobs', e)
+    error.value = LOAD_FAILED
   } finally {
     if (mine === latest) {
       loading.value = false
