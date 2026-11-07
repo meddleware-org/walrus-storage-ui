@@ -56,7 +56,7 @@
     "@meddleware/design-tokens": "^0.1.13",
     "@meddleware/ui": "^0.1.40",
     "@meddleware/walrus-storage-client": "^0.0.34",
-    "@meddleware/walrus-storage-kit": "^0.1.38",
+    "@meddleware/walrus-storage-kit": "^0.1.39",
     "@meddleware/web-utils": "^0.0.3",
     "@mysten/sui": "^2.33.2",
     "@mysten/walrus": "~1.2.32",
