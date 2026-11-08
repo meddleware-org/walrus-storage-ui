@@ -589,7 +589,7 @@ in `node-ci.yml` and so in the image release (F6). Gating variables: none.
 - [ ] mainnet relay and gate configured; gated e2e on mainnet — mainnet-blocked
 - [x] CSP and HSTS on the one hosting path (B.VUE-1)
 - [ ] registry credential inventory and rotation (F7) — `OPERATOR_TASKS.md` "Image registry credentials"
-- [ ] external review — maintainer item (`OPERATOR_TASKS.md` "Funding, grants and an external audit")
+- [ ] external review (ADR-0009 gate G4: not a launch gate; covered by redeploy and the audit pass) — maintainer item (`OPERATOR_TASKS.md` "Funding, grants and an external audit")
 
 ## Cross-project themes
 
