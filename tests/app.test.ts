@@ -28,6 +28,14 @@ describe('App', () => {
     expect(w.find('footer').text()).toContain('Meddleware')
   })
 
+  it('shows the company mark beside the tool name in the header, as decoration', () => {
+    walrusNetwork.value = 'testnet'
+    const mark = mount(App).find('header svg.mw-brand-mark')
+    expect(mark.exists()).toBe(true)
+    expect(mark.attributes('aria-hidden')).toBe('true')
+    expect(mark.find('path').attributes('fill')).toBe('currentColor')
+  })
+
   it('shows the relay of the active network in the header', () => {
     walrusNetwork.value = 'mainnet'
     expect(mount(App).find('header .badge').text()).toBe('https://relay-main.example.com')

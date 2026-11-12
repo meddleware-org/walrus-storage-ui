@@ -11,6 +11,9 @@ on:
   schedule:
     - cron: '0 4 * * *' # nightly
 
+env:
+  DO_NOT_TRACK: "1"
+
 permissions:
   contents: read
 

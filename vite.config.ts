@@ -8,6 +8,7 @@ import { meddlewareApp } from '@meddleware/frontend-config/vite'
 export default defineConfig(
   meddlewareApp({
     plugins: [vue()],
+    name: 'Walrus Assets',
     config: { optimizeDeps: { exclude: ['@mysten/walrus', '@mysten/walrus-wasm'] } },
   }),
 )
