@@ -4,13 +4,20 @@ All notable changes to `@meddleware/walrus-storage-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 
+## [0.1.71] - 2026-11-13
+
+### Changed
+
+- Plain words from `@meddleware/walrus-storage-kit` ^0.1.41: the relay is labelled "Meddleware relay", the terms and purchase errors read in plain language and an unavailable upload says "Uploads are unavailable right now." The app shows none of these strings itself; the kit stays the single source.
+- Dependencies: `@meddleware/ui` ^0.1.43, `@meddleware/frontend-config` ^0.0.9, `@meddleware/wallet-adapter` ^0.0.23 (dev; the peer range is unchanged).
+
 ## [0.1.70] - 2026-11-12
 
 ### Changed
 
 - The header shows the company mark (the Kopimi "K") beside the tool name (`@meddleware/ui` 0.1.41 `AppToolShell`).
 - The favicon set (SVG, ICO, Apple touch icon, 192 and 512 icons, web manifest named "Walrus Assets") now comes from `@meddleware/frontend-config` 0.0.8 (`meddlewareApp({ name })`); the app's own `public/favicon.svg` and its icon link tag are removed.
-- Dependencies: `@meddleware/ui` ^0.1.41, `@meddleware/frontend-config` ^0.0.8, `@meddleware/web-utils` ^0.0.4.
+- Dependencies: `@meddleware/ui` ^0.1.41, `@meddleware/frontend-config` ^0.0.8.
 - CI and release workflows set `DO_NOT_TRACK=1`.
 
 ### Added
