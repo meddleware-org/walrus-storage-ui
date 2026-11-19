@@ -4,7 +4,7 @@ All notable changes to `@meddleware/walrus-storage-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 
-## [Unreleased]
+## [0.1.72] - 2026-11-19
 
 - Shared packages for the storage rule (D134): nothing is stored before the visitor acts (`@meddleware/ui` remembers the colour
   mode only when asked, `wallet-adapter` keeps a chosen network for the tab only, the docs theme stores no colour mode, expired upload
