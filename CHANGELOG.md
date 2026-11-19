@@ -4,7 +4,7 @@ All notable changes to `@meddleware/walrus-storage-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 
-## [Unreleased]
+## [0.1.74] - 2026-11-19
 
 - Tests: the storage check loads the page as a first visit (`?first-visit` skips the e2e build's mock wallet and seeded upload).
   0.1.73 was not built (its storage check counted the test fixtures).
