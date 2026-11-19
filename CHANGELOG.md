@@ -4,6 +4,11 @@ All notable changes to `@meddleware/walrus-storage-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 
+## [Unreleased]
+
+- Tests: the storage check loads the page as a first visit (`?first-visit` skips the e2e build's mock wallet and seeded upload).
+  0.1.73 was not built (its storage check counted the test fixtures).
+
 ## [0.1.73] - 2026-11-19
 
 - **Security:** the image is built on static-server 0.1.13 (Go 1.26.11), which fixes CVE-2026-97054 (HIGH, `net/http`) found in
