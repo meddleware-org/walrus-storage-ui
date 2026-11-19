@@ -22,6 +22,8 @@ const blob = (n: number, blobId: string, over: Partial<OwnedBlob>): OwnedBlob =>
 })
 
 export function installE2e(): void {
+  // `?first-visit`: the page as a first-time visitor gets it (no wallet, nothing seeded), for the storage check (e2e/storage.spec.ts).
+  if (new URLSearchParams(location.search).has('first-visit')) return
   installE2eWallet()
   const owned = [
     // Re-uploads of the same content collapse into one row with two copies; the nearer one is about to expire.
