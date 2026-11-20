@@ -76,3 +76,7 @@ All financial truth is on-chain. This UI is an orchestration shell.
 ## License
 
 0BSD
+
+## Open standards
+
+What this project speaks, what is planned and where you can extend it: [docs/INTEROP.md](docs/INTEROP.md).

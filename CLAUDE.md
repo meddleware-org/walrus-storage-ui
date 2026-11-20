@@ -136,3 +136,7 @@ Keep each feature as a tab or route so the shell remains composable.
   branding via `@meddleware/design-tokens` + the `AppHeader` slot. Note that commission routing is
   fixed by `relayGateConfig` in `@meddleware/walrus-storage-kit` (the published access-gate deployment) and is not a
   deployment setting here.
+
+## Interoperability
+
+- [docs/INTEROP.md](docs/INTEROP.md): the standards this project speaks, what is planned, where to extend it, and what proves each claim.
