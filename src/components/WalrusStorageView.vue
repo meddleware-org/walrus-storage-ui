@@ -130,7 +130,7 @@ function onSettled(): void {
               <!-- Gated relays spend a credit before the file is stored: say that it pays for an attempt, not a guarantee, and
                    that attempts resume. -->
               <UiNotice v-if="gateState.gateConfigured" type="info">
-                Uploading spends <strong>one credit</strong> from your access NFT (an on-chain step) before the file is stored — it pays
+                Uploading spends <strong>one credit</strong> from your access pass (an on-chain step) before the file is stored — it pays
                 for an upload <em>attempt</em>, not a guaranteed upload. Your attempt resumes automatically, even after a page reload if
                 you re-select the same file, so a credit is normally not lost. A credit is spent without a completed upload only if you
                 abandon the upload entirely, cancel a required wallet approval, or wait long enough that the reserved storage lapses.

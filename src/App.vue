@@ -14,7 +14,7 @@ const DEV_URL = import.meta.env.VITE_DEV_URL || undefined
 </script>
 
 <template>
-  <AppToolShell title="Walrus Assets" slug="walrus-storage" :docs-url="DOCS_URL" :dev-url="DEV_URL">
+  <AppToolShell title="Walrus Storage" slug="walrus-storage" :docs-url="DOCS_URL" :dev-url="DEV_URL">
     <template #actions>
       <TipConfigBadge v-if="relayHost" :host="relayHost" />
     </template>

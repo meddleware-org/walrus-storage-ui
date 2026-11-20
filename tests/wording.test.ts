@@ -19,7 +19,7 @@ const templateOf = (file: string) => readFileSync(file, 'utf8').replace(/<script
 describe('user-visible wording', () => {
   it('the page title and description', () => {
     const html = readFileSync(join(root, 'index.html'), 'utf8')
-    expect(html).toContain('<title>Walrus Assets · Meddleware</title>')
+    expect(html).toContain('<title>Walrus Storage · Meddleware</title>')
     for (const text of html.match(/<title>.*<\/title>|content="[^"]*"/g) ?? []) expect(text).not.toMatch(/operator|VITE_|coming soon/i)
     expect(html).not.toMatch(SPELLING)
   })

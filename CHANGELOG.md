@@ -6,6 +6,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+- The app is called Walrus Storage everywhere (it was "Walrus Assets" in its title and manifest); wording: "access pass", not "access NFT"; new page description (copy standard, 2026-11-20).
 - CI: `HOME=/root` is set on the browser-test command only, not the whole job, so the runner no longer warns that it cannot read
   `/root/.docker/config.json`.
 - `overrides.chrome-launcher: ^1.2.3`: Lighthouse CI (`@lhci/cli` 0.16.1, the newest) still asks for chrome-launcher 0.13, which pulls

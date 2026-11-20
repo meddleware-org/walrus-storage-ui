@@ -38,7 +38,7 @@ describe.skipIf(!existsSync(dist) && !process.env.REQUIRE_DIST)('production buil
     for (const f of ['favicon.svg', 'favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'site.webmanifest']) {
       expect(existsSync(join(dist, f)), f).toBe(true)
     }
-    expect(JSON.parse(readFileSync(join(dist, 'site.webmanifest'), 'utf8')).name).toBe('Walrus Assets')
+    expect(JSON.parse(readFileSync(join(dist, 'site.webmanifest'), 'utf8')).name).toBe('Walrus Storage')
   })
 
   it('links exactly one svg icon from the page', () => {

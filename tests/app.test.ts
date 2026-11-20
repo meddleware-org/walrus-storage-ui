@@ -19,8 +19,8 @@ describe('App', () => {
   it('is the tool shell around the view', () => {
     walrusNetwork.value = 'testnet'
     const w = mount(App)
-    expect(w.find('h1').text()).toBe('Walrus Assets')
-    expect(w.find('header').text()).toContain('Walrus Assets')
+    expect(w.find('h1').text()).toBe('Walrus Storage')
+    expect(w.find('header').text()).toContain('Walrus Storage')
     expect(w.find('.view').exists()).toBe(true)
     const hrefs = w.findAll('footer a').map((a) => a.attributes('href'))
     expect(hrefs).toContain('https://docs.meddleware.co.uk/blockchain/sui/walrus-storage/')

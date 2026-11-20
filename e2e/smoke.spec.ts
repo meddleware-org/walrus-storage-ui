@@ -8,7 +8,7 @@ test('mounts, shows the tabs, and asks for a wallet before anything else', async
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
   await open()(page)
-  await expect(page.getByRole('heading', { level: 1, name: 'Walrus Assets' })).toBeAttached()
+  await expect(page.getByRole('heading', { level: 1, name: 'Walrus Storage' })).toBeAttached()
   await expect(page.getByRole('tab', { name: 'Upload' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('tab', { name: 'My Blobs' })).toHaveAttribute('aria-selected', 'false')
   await expect(page.getByText('Connect a Sui wallet to upload and manage your blobs.')).toBeVisible()
