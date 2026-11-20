@@ -4,7 +4,7 @@ All notable changes to `@meddleware/walrus-storage-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 
-## [Unreleased]
+## [0.1.75] - 2026-11-20
 
 - The app is called Walrus Storage everywhere (it was "Walrus Assets" in its title and manifest); wording: "access pass", not "access NFT"; new page description (copy standard, 2026-11-20).
 - CI: `HOME=/root` is set on the browser-test command only, not the whole job, so the runner no longer warns that it cannot read
