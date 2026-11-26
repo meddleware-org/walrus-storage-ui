@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test'
 import { E2E_BLOBS } from '../src/e2e-data.js'
 import { copies, open } from './open.js'
 
+// Landmarks, the tabs and the wallet prompt.
 test('mounts, shows the tabs, and asks for a wallet before anything else', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
@@ -19,12 +20,14 @@ test('mounts, shows the tabs, and asks for a wallet before anything else', async
   expect(errors).toEqual([])
 })
 
+// Connected, the upload form takes the place of the prompt.
 test('connected, the upload form takes the place of the wallet prompt', async ({ page }) => {
   await open({ connected: true })(page)
   await expect(page.getByText('Connect a Sui wallet to upload and manage your blobs.')).toHaveCount(0)
   await expect(page.getByLabel(/file/i).first()).toBeAttached()
 })
 
+// One row per blob, with the action it is offered.
 test('My Blobs lists one row per blob with the action it is offered', async ({ page }) => {
   await open({ connected: true, tab: 'My Blobs' })(page)
   const table = page.getByRole('table', { name: 'Your Walrus blobs' })
@@ -39,6 +42,7 @@ test('My Blobs lists one row per blob with the action it is offered', async ({ p
   await expect(maxed.getByRole('button', { name: 'Show cost' })).toHaveCount(0)
 })
 
+// The copies of a duplicated blob open and close.
 test('the copies of a duplicated blob open and close', async ({ page }) => {
   await copies(page)
   const table = page.getByRole('table', { name: 'Your Walrus blobs' })
@@ -50,6 +54,7 @@ test('the copies of a duplicated blob open and close', async ({ page }) => {
   await expect(table.getByRole('row')).toHaveCount(5)
 })
 
+// The first press shows the cost; the wallet is not asked for an unpriced amount.
 test('the first press on Extend shows the cost; the wallet is not asked for an unpriced amount', async ({ page }) => {
   await open({ connected: true, tab: 'My Blobs' })(page)
   const row = page.getByRole('row', { name: new RegExp(E2E_BLOBS.steady.slice(0, 8)) })

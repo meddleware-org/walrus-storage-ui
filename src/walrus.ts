@@ -4,9 +4,12 @@
 import walrusWasmUrl from '@mysten/walrus-wasm/web/walrus_wasm_bg.wasm?url'
 import type { WalrusNetwork } from '@meddleware/walrus-storage-kit'
 
+/** The Walrus client library's module type. */
 type WalrusLib = typeof import('@meddleware/walrus-storage-client')
+/** A Walrus client, as the library creates it. */
 type WalrusClient = ReturnType<WalrusLib['createWalrusClient']>
 
+// The library import in flight or done (null until first use), and one client per network.
 let lib: Promise<WalrusLib> | null = null
 const clients = new Map<WalrusNetwork, WalrusClient>()
 
@@ -26,4 +29,5 @@ export async function walrusClient(network: WalrusNetwork): Promise<WalrusClient
   return client
 }
 
+// The wasm's URL, for the upload flow, which creates its own client.
 export { walrusWasmUrl }

@@ -1,5 +1,6 @@
 // What the end-to-end build's prepared blob list is made of, apart from the code that installs it (`e2e.ts` pulls in the mock wallet, which
 // a Playwright spec, running in Node, cannot load): the specs import these to look for the right rows.
+/** The Walrus epoch the stub reports as the current one. */
 export const E2E_EPOCH = 560
 
 /** Blob ids as the aggregator spells them (URL-safe base64, 43 characters). */

@@ -34,6 +34,10 @@ function supersede(): void {
   loading.value = false
 }
 
+/**
+ * Load the wallet's owned blobs for the active network into the shared cache, unless they are already loaded for this address (or `force`);
+ * a result that arrives after a newer load began is dropped.
+ */
 async function load(address: string | null, opts: { force?: boolean } = {}): Promise<void> {
   const net = walrusNetwork.value
   if (!address || !net) {

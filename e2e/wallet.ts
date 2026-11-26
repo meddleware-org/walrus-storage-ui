@@ -9,8 +9,10 @@ import { fromBase64, toBase64 } from '@mysten/sui/utils'
 
 /** Make the page's mock wallet sign as the funded localnet key; resolves the address it connects with. Call before `page.goto`. */
 export async function installLocalnetWallet(page: Page): Promise<string> {
+  // The funded localnet key comes from the environment, never from the repository.
   const secret = process.env.WALRUS_TEST_SECRET_KEY
   if (!secret) throw new Error('WALRUS_TEST_SECRET_KEY is not set: source walrus-storage-client/localnet/.env.localnet first.')
+  // The key pair and its address.
   const keypair = Ed25519Keypair.fromSecretKey(secret)
   const address = keypair.toSuiAddress()
   const client = new SuiGrpcClient({ network: 'localnet', baseUrl: process.env.WALRUS_RPC_URL ?? 'http://127.0.0.1:9000' })

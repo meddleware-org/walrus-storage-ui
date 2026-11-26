@@ -3,6 +3,7 @@
 // an estimate (labelled `≈`): the wallet and the chain still decide the amount actually paid.
 import { shallowRef } from 'vue'
 
+/** A quote for adding `epochs` to a blob: ready with its cost, or unavailable. */
 export type ExtendQuote =
   | { epochs: number; state: 'ready'; costFrost: bigint }
   | { epochs: number; state: 'unavailable'; costFrost: null }
@@ -10,9 +11,11 @@ export type ExtendQuote =
 /** Cost in FROST of storing `size` bytes for `epochs`, or `null` when it cannot be priced. */
 export type EstimateExtendCost = (size: number, epochs: number) => Promise<bigint | null>
 
+/** Per-row Extend quotes: price an amount, remember the latest answer per row, and refuse to open the wallet for an amount whose cost has not been shown. */
 export function useExtendQuotes(estimate: EstimateExtendCost) {
   /** Latest quote per Blob object id (one per row). */
   const quotes = shallowRef<Record<string, ExtendQuote>>({})
+  /** The amount being priced, per row (so the row can say "pricing…"). */
   const pricing = shallowRef<Record<string, number>>({})
   /** Per-row request counter: an older answer never replaces a newer amount's quote. */
   const tokens: Record<string, number> = {}

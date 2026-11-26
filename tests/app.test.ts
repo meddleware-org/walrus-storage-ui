@@ -15,7 +15,9 @@ vi.mock('@meddleware/walrus-storage-kit', () => ({
 
 import App from '../src/App.vue'
 
+// The shell around the view: heading, relay badge, documentation links and brand mark.
 describe('App', () => {
+  // Is the tool shell around the view.
   it('is the tool shell around the view', () => {
     walrusNetwork.value = 'testnet'
     const w = mount(App)
@@ -28,6 +30,7 @@ describe('App', () => {
     expect(w.find('footer').text()).toContain('Meddleware')
   })
 
+  // Shows the company mark beside the tool name in the header, as decoration.
   it('shows the company mark beside the tool name in the header, as decoration', () => {
     walrusNetwork.value = 'testnet'
     const mark = mount(App).find('header svg.mw-brand-mark')

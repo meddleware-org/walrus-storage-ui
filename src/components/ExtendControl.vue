@@ -9,6 +9,7 @@ import { formatCoinAmount } from '@meddleware/walrus-storage-kit'
 import type { OwnedBlob } from '@meddleware/walrus-storage-client'
 import { useExtendQuotes, type EstimateExtendCost } from '../composables/useExtendQuotes.js'
 
+// The component's inputs and event.
 const props = defineProps<{
   /** The blob (the group's furthest-expiry copy) to extend. */
   blob: OwnedBlob
@@ -23,10 +24,12 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ extend: [epochs: number] }>()
 
+// The quotes for this blob; the first interaction prices the amount (not every row on load).
 const quotes = useExtendQuotes(props.estimate)
 // Seeded with a sensible default (+10, clamped) without pricing it: the estimate is fetched on the first interaction, not for every row.
 const amount = ref(Math.min(10, props.max))
 
+/** Keep an amount to a whole number between 1 and the most the chain allows. */
 function clamp(value: number | string): number {
   return Math.min(props.max, Math.max(1, Math.floor(Number(value) || 1)))
 }
@@ -37,6 +40,7 @@ function pick(value: number | string): void {
   void quotes.price(props.blob.objectId, props.blob.size, amount.value)
 }
 
+// The quote for the amount shown, and the words that describe it.
 const quote = computed(() => quotes.quoteFor(props.blob.objectId, amount.value))
 const quoteText = computed(() => {
   const q = quote.value
@@ -45,6 +49,7 @@ const quoteText = computed(() => {
   return quotes.pricing.value[props.blob.objectId] === amount.value ? 'pricing…' : ''
 })
 
+/** Extend, but only once the cost has been shown: the first press prices the amount, the second opens the wallet. */
 async function extend(): Promise<void> {
   if (props.disabled || props.busy) return
   if (await quotes.shownBeforeSigning(props.blob.objectId, props.blob.size, amount.value)) emit('extend', amount.value)
@@ -69,6 +74,7 @@ watch(
 <template>
   <fieldset class="extend">
     <legend class="mw-visually-hidden">Extend {{ truncateMiddle(blob.blobId, [8, 6]) }}</legend>
+    <!-- The number of epochs to add, from 1 to the most the chain allows. -->
     <UiInput
       type="number"
       min="1"
@@ -77,15 +83,19 @@ watch(
       :aria-label="`Epochs to add to ${truncateMiddle(blob.blobId, [8, 6])}`"
       @update:model-value="pick($event ?? 1)"
     />
+    <!-- Quick amounts: +10, +25 and the maximum. -->
     <UiButton variant="ghost" size="sm" @click="pick(10)">+10</UiButton>
     <UiButton variant="ghost" size="sm" @click="pick(25)">+25</UiButton>
     <UiButton variant="ghost" size="sm" @click="pick(max)">Max</UiButton>
+    <!-- The first press shows the cost; once a quote is shown it extends. -->
     <UiButton size="sm" :disabled="disabled" :busy="busy" @click="extend">{{ quote ? 'Extend' : 'Show cost' }}</UiButton>
+    <!-- The cost (or "pricing…") is announced politely. -->
     <UiLiveStatus label="Extension cost" :message="quoteText" />
   </fieldset>
 </template>
 
 <style scoped>
+/* The controls wrap onto several lines on a narrow screen. */
 .extend {
   display: flex;
   flex-wrap: wrap;
@@ -96,6 +106,7 @@ watch(
   padding: 0;
   border: 0;
 }
+/* The number field is narrow. */
 .extend :deep(.mw-input) {
   width: 5em;
 }

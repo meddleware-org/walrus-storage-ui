@@ -22,6 +22,7 @@ vi.mock('../src/composables/useOwnedBlobs.js', () => ({ useOwnedBlobs: () => ({ 
 
 import WalrusStorageView from '../src/components/WalrusStorageView.vue'
 
+// The plain words, no tab list, no wallet prompt, no upload form.
 describe('WalrusStorageView where Walrus storage cannot be used', () => {
   it('shows the plain message and none of the tool', () => {
     const w = mount(WalrusStorageView)

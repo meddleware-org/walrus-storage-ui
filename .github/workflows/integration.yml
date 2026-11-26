@@ -39,7 +39,6 @@ jobs:
       # - name: Checkout walrus-storage-client + access-gate-sui, bring up testbed
       #   run: |
       #     git clone --depth 1 https://github.com/meddleware-org/walrus-storage-client ../walrus-storage-client
-      #     git clone --depth 1 https://github.com/meddleware-org/access-gate-sui ../access-gate-sui
       #     ( cd ../walrus-storage-client/localnet && bash scripts/up.sh && bash scripts/bootstrap-localnet.sh )
       #     set -a && source ../walrus-storage-client/localnet/.env.localnet && set +a
 

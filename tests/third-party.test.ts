@@ -10,6 +10,7 @@ const dist = join(root, 'dist')
 
 const FORBIDDEN = /fonts\.googleapis|fonts\.gstatic|@fontsource|unpkg\.com|jsdelivr|cdnjs|cdn\.|gravatar|google-analytics|googletagmanager|gtag\(|plausible|matomo|hotjar|segment\.(com|io)/i
 
+/** Every file under a directory, recursively. */
 function filesOf(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? filesOf(join(dir, e.name)) : [join(dir, e.name)]))
 }

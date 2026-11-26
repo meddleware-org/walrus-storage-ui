@@ -11,8 +11,10 @@ vi.mock('@meddleware/walrus-storage-client', () => ({
 
 import { LOAD_FAILED, useOwnedBlobs } from '../src/composables/useOwnedBlobs.js'
 
+// Restore the console and the mocks.
 afterEach(() => vi.restoreAllMocks())
 
+// A failed load says what to do and logs the cause.
 describe('useOwnedBlobs failure', () => {
   it('shows a plain message and logs the cause', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)

@@ -1,3 +1,5 @@
+// Grouping owned blobs by blob id for My Blobs (src/blob-groups.ts): copies are collapsed into one row, each group is sorted, and the epoch helpers say how long
+// a blob has left and how much it can still be extended.
 import { describe, it, expect } from 'vitest'
 import {
   groupBlobs,
@@ -7,10 +9,12 @@ import {
 } from '../src/blob-groups.js'
 import type { OwnedBlob } from '@meddleware/walrus-storage-client'
 
+/** An owned blob with defaults the cases override. */
 function blob(p: Partial<OwnedBlob> & { objectId: string; blobId: string }): OwnedBlob {
   return { size: 1024, endEpoch: 100, certified: false, ...p }
 }
 
+// Grouping, sorting and the representative copy.
 describe('groupBlobs', () => {
   it('collapses copies of the same blobId, furthest end epoch first', () => {
     const groups = groupBlobs([
@@ -32,6 +36,7 @@ describe('groupBlobs', () => {
   })
 })
 
+// Epochs left, the expiry label and the most that can still be added.
 describe('epoch helpers', () => {
   it('epochsLeft clamps at zero', () => {
     expect(epochsLeft(572, 519)).toBe(53)

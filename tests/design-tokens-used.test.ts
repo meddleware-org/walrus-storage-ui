@@ -12,6 +12,7 @@ const tokenCss = readFileSync(require.resolve('@meddleware/design-tokens/tokens.
 const seasonCss = readFileSync(require.resolve('@meddleware/design-tokens/seasons.css'), 'utf8')
 const defined = new Set([...(tokenCss + seasonCss).matchAll(/^\s*(--[\w-]+)\s*:/gm)].map((m) => m[1]))
 
+/** The .vue files under a directory, recursively. */
 function vueFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? vueFiles(join(dir, e.name)) : e.name.endsWith('.vue') ? [join(dir, e.name)] : [],

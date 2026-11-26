@@ -18,25 +18,35 @@ import { availability, relayHosts, uploadRelayMaxTipMist, walrusNetwork } from '
 import { buildExecutor, getSuiClient, useWallet } from '../wallet.js'
 import { walrusClient, walrusLib, walrusWasmUrl } from '../walrus.js'
 
+/** What an upload produced (the client's result). */
 export type UploadResult = BlobUploadResult
 
+/** What the upload widget asks for. */
 export interface UploadOptions {
+  /** The relay to upload through. */
   relayHost: string
+  /** How many storage epochs to reserve. */
   epochs: number
+  /** Upload even when the wallet already owns this exact blob. */
   force?: boolean
+  /** Whether the Blob object can be deleted by its owner. */
   deletable?: boolean
+  /** Progress reports for the widget. */
   onStatus: (s: string | UploadProgress) => void
 }
 
 /** `gate` is the active network's access-gate state (a getter: it changes with the network). */
+/** The Upload tab's two injected functions: perform an upload, and price a reservation. */
 export function useStorageUpload(gate: () => AccessGateState) {
   // Browser storage that never throws (blocked site data falls back to memory for this page).
   const storage = browserStorage()
   const { account, signPersonalMessage } = useWallet()
   const { accessFor } = useGatedUpload(gate)
 
-  // Precheck (before paying to register): does the wallet already own this exact blob? Returns a `certified` match (offer Extend) or a
-  // `pending` one: uncertified but with a saved certificate (offer Certify). Best-effort: any failure returns null so the upload proceeds.
+  /**
+   * Precheck (before paying to register): does the wallet already own this exact blob? Returns a `certified` match (offer Extend) or a
+   * `pending` one: uncertified but with a saved certificate (offer Certify). Best-effort: any failure returns null so the upload proceeds.
+   */
   async function findExistingCopy(blobId: string): Promise<ExistingCopy | null> {
     const address = account.value?.address
     const net = walrusNetwork.value
@@ -56,6 +66,7 @@ export function useStorageUpload(gate: () => AccessGateState) {
     }
   }
 
+  /** Register fresh, upload through the relay and certify (for a gated relay, spending an access credit first). */
   async function performUpload(bytes: Uint8Array, opts: UploadOptions): Promise<UploadResult> {
     if (!account.value) throw new Error('Connect your wallet first.')
     const net = walrusNetwork.value
@@ -95,7 +106,7 @@ export function useStorageUpload(gate: () => AccessGateState) {
   }
 
   // Injected into the upload widget so it can price a chosen reservation duration (storage is WAL, billed per size × epochs).
-  // Returns the total cost in FROST, or null when it cannot be priced.
+  /** Price storing `sizeBytes` for `epochs`, in FROST, or `null` when it cannot be priced. */
   async function estimateStorageCost(sizeBytes: number, epochs: number): Promise<bigint | null> {
     const net = walrusNetwork.value
     if (!net) return null

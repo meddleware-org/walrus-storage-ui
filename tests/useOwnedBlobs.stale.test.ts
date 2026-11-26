@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('../src/wallet.js', () => ({ getSuiClient: () => ({ __sui: true }) }))
 
+/** The fields of an owned blob these tests use. */
 type Blob = { objectId: string; blobId: string; size: number; endEpoch: number; certified: boolean }
 const h = vi.hoisted(() => {
   const pending: Array<{
@@ -28,15 +29,19 @@ vi.mock('@meddleware/walrus-storage-client', () => ({
 import { useNetwork } from '@meddleware/wallet-adapter'
 import { useOwnedBlobs } from '../src/composables/useOwnedBlobs.js'
 
+// blob(id): a minimal certified blob.
 const blob = (id: string): Blob => ({ objectId: id, blobId: `blob-${id}`, size: 1, endEpoch: 570, certified: true })
 /** Let the dynamic import and the awaited reads inside `load` reach the held fetch. */
+// settle(): let pending promises run.
 const settle = () => new Promise((r) => setTimeout(r, 0))
+// request(address): start a load for an address.
 const request = (address: string) => {
   const r = h.pending.find((p) => p.address === address)
   if (!r) throw new Error(`no fetch started for ${address}`)
   return r
 }
 
+// An older load never overwrites a newer one.
 describe('useOwnedBlobs stale-result guard', () => {
   beforeEach(async () => {
     h.pending.length = 0
@@ -46,6 +51,7 @@ describe('useOwnedBlobs stale-result guard', () => {
     s.error.value = null
   })
 
+  // Drops the earlier account\.
   it('drops the earlier account\'s list when it finishes after the later one', async () => {
     const { blobs, loadedFor, loading, load } = useOwnedBlobs()
     const first = load('0xa', { force: true })
@@ -66,6 +72,7 @@ describe('useOwnedBlobs stale-result guard', () => {
     expect(loading.value).toBe(false)
   })
 
+  // Does not let an earlier load clear `loading` while the newer one is still running.
   it('does not let an earlier load clear `loading` while the newer one is still running', async () => {
     const { blobs, loading, load } = useOwnedBlobs()
     const first = load('0xa', { force: true })
@@ -84,6 +91,7 @@ describe('useOwnedBlobs stale-result guard', () => {
     expect(blobs.value.map((b) => b.objectId)).toEqual(['b1'])
   })
 
+  // Drops an earlier failure, too.
   it('drops an earlier failure, too', async () => {
     const { error, loadedFor, load } = useOwnedBlobs()
     const first = load('0xa', { force: true })
@@ -98,6 +106,7 @@ describe('useOwnedBlobs stale-result guard', () => {
     expect(loadedFor.value).toBe('testnet|0xb')
   })
 
+  // Drops a load that finishes after the wallet disconnected.
   it('drops a load that finishes after the wallet disconnected', async () => {
     const { blobs, loadedFor, loading, load } = useOwnedBlobs()
     const inFlight = load('0xa', { force: true })
@@ -111,6 +120,7 @@ describe('useOwnedBlobs stale-result guard', () => {
     expect(loadedFor.value).toBeNull()
   })
 
+  // Drops a load that finishes after the network switched.
   it('drops a load that finishes after the network switched', async () => {
     const { blobs, loadedFor, load } = useOwnedBlobs()
     const testnetLoad = load('0xa', { force: true })
@@ -127,6 +137,7 @@ describe('useOwnedBlobs stale-result guard', () => {
     expect(blobs.value.map((b) => b.objectId)).toEqual(['mainnet'])
   })
 
+  // Switching back to a held list cancels a slower load for the account that was left.
   it('switching back to a held list cancels a slower load for the account that was left', async () => {
     const { blobs, loadedFor, loading, load } = useOwnedBlobs()
     const a = load('0xa', { force: true })

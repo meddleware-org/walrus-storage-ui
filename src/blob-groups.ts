@@ -3,6 +3,7 @@
 // one row so My Blobs matches how Walruscan thinks per-blobId, while still exposing each copy.
 import type { OwnedBlob } from '@meddleware/walrus-storage-client'
 
+/** One row of My Blobs: every owned copy of one blob id. */
 export interface BlobGroup {
   /** Shared Walrus blob id. */
   blobId: string
@@ -20,15 +21,18 @@ export interface BlobGroup {
 
 /** Collapse owned blobs into per-blobId groups, each sorted by end epoch (furthest first). */
 export function groupBlobs(blobs: OwnedBlob[]): BlobGroup[] {
+  // Collect the copies by blob id.
   const byId = new Map<string, OwnedBlob[]>()
   for (const b of blobs) {
     const list = byId.get(b.blobId)
     if (list) list.push(b)
     else byId.set(b.blobId, [b])
   }
+  // One group per blob id; each group's copies are sorted with the furthest expiry first.
   const groups: BlobGroup[] = []
   for (const [blobId, copies] of byId) {
     const sorted = [...copies].sort((a, b) => b.endEpoch - a.endEpoch)
+    // The furthest-expiring copy represents the group: it defines how long the content is available.
     const representative = sorted[0]
     groups.push({
       blobId,

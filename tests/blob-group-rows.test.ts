@@ -4,10 +4,12 @@ import { mount } from '@vue/test-utils'
 import { groupBlobs } from '../src/blob-groups.js'
 import BlobGroupRows from '../src/components/BlobGroupRows.vue'
 
+// owned(objectId, blobId, over): an owned blob with defaults the cases override.
 const owned = (objectId: string, blobId: string, over = {}) => ({
   objectId, blobId, size: 4096, startEpoch: 1, endEpoch: 600, certified: true, deletable: false, ...over,
 })
 
+/** Mount the rows for some blobs, inside a table, with default props the cases override. */
 function rows(blobs: ReturnType<typeof owned>[], props: Record<string, unknown> = {}) {
   const [group] = groupBlobs(blobs)
   return mount(
@@ -22,9 +24,12 @@ function rows(blobs: ReturnType<typeof owned>[], props: Record<string, unknown> 
     },
   )
 }
+// texts(w): the text of each rendered row.
 const texts = (w: ReturnType<typeof mount>) => w.findAll('tr').map((r) => r.text())
 
+// What each kind of blob shows and offers.
 describe('BlobGroupRows', () => {
+  // A certified blob shows its size, expiry and certification, and offers Extend.
   it('a certified blob shows its size, expiry and certification, and offers Extend', () => {
     const w = rows([owned('0x1', 'A'.repeat(43))])
     const [row] = texts(w)
@@ -35,10 +40,12 @@ describe('BlobGroupRows', () => {
     expect(w.findAll('button').some((b) => b.text() === 'Show cost')).toBe(true)
   })
 
+  // Flags a blob that expires within ten epochs.
   it('flags a blob that expires within ten epochs', () => {
     expect(texts(rows([owned('0x1', 'A'.repeat(43), { endEpoch: 565 })]))[0]).toContain('Expiring soon')
   })
 
+  // Offers Certify for an uncertified copy whose certificate is stored, and says it is uncertified either way.
   it('offers Certify for an uncertified copy whose certificate is stored, and says it is uncertified either way', () => {
     const blobs = [owned('0xp', 'P'.repeat(43), { certified: false })]
     const withCert = rows(blobs, { pending: { '0xp': { blobId: 'P'.repeat(43), blobObjectId: '0xp', certificate: 'c', deletable: false, savedAt: 0 } } })

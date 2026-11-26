@@ -8,8 +8,10 @@ import type { OwnedBlob } from '@meddleware/walrus-storage-client'
 import { useOwnedBlobs } from './composables/useOwnedBlobs.js'
 import { E2E_BLOBS, E2E_EPOCH } from './e2e-data.js'
 
+// hex(byte): a 32-byte object id made of one repeated byte.
 const hex = (byte: string) => `0x${byte.repeat(32)}`
 
+// blob(n, id, over): an owned blob with defaults the cases override.
 const blob = (n: number, blobId: string, over: Partial<OwnedBlob>): OwnedBlob => ({
   objectId: hex(n.toString(16).padStart(2, '0')),
   blobId,
@@ -21,6 +23,7 @@ const blob = (n: number, blobId: string, over: Partial<OwnedBlob>): OwnedBlob =>
   ...over,
 })
 
+/** Register the mock wallet and fill the owned-blob cache with five blobs, one of them uploaded but not certified. */
 export function installE2e(): void {
   // `?first-visit`: the page as a first-time visitor gets it (no wallet, nothing seeded), for the storage check (e2e/storage.spec.ts).
   if (new URLSearchParams(location.search).has('first-visit')) return
@@ -35,12 +38,14 @@ export function installE2e(): void {
     // Already as far ahead as the chain allows: nothing to extend.
     blob(5, E2E_BLOBS.maxed, { endEpoch: 613, size: 512 }),
   ]
+  // The stored certificate that makes Certify available for the uncertified blob.
   savePendingCertify(browserStorage(), pendingCertifyKey('testnet', MOCK_ADDRESS), {
     blobId: E2E_BLOBS.pending,
     blobObjectId: owned[3].objectId,
     certificate: 'ZTJlLWNlcnRpZmljYXRl',
     deletable: true,
   })
+  // Fill the shared cache, sorted as the app sorts it, as if the list had been loaded for the mock account.
   const state = useOwnedBlobs()
   state.blobs.value = owned.sort((a, b) => a.endEpoch - b.endEpoch)
   state.currentEpoch.value = E2E_EPOCH

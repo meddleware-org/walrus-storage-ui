@@ -1,3 +1,5 @@
+// Helpers the Walrus Storage browser tests share: open the built app with every request that leaves localhost refused, connect the mock wallet,
+// and read the rows of My Blobs.
 import type { Page } from '@playwright/test'
 import { offline } from '@meddleware/frontend-config/look'
 import { connectMockWallet } from '@meddleware/frontend-config/wallet'

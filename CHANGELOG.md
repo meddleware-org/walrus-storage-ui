@@ -4,6 +4,10 @@ All notable changes to `@meddleware/walrus-storage-ui` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 
+## [Unreleased]
+
+- Documentation pass (workspace documentation standard): every file has a header and line-level comments, every declaration a doc comment; `CONTRIBUTING.md` is new. The files synced from `@meddleware/frontend-config` now carry that package's commented templates (`npx mw-sync --write`). The npm-publish workflow's "not configured" warning had a garbled word ("--provenanceing") and now reads "npm publishing is not configured". The built bundle is unchanged apart from one header comment in `index.html`.
+
 ## [0.1.75] - 2026-11-20
 
 - The app is called Walrus Storage everywhere (it was "Walrus Assets" in its title and manifest); wording: "access pass", not "access NFT"; new page description (copy standard, 2026-11-20).

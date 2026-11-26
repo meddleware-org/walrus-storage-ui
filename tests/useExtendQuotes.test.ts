@@ -3,7 +3,9 @@
 import { describe, it, expect, vi } from 'vitest'
 import { useExtendQuotes } from '../src/composables/useExtendQuotes.js'
 
+// Pricing, the latest quote per row, and the rule that the wallet is never opened for an unpriced amount.
 describe('useExtendQuotes', () => {
+  // Prices an unpriced amount first and does not allow signing yet.
   it('prices an unpriced amount first and does not allow signing yet', async () => {
     const estimate = vi.fn(async (_size: number, epochs: number) => BigInt(epochs) * 1000n)
     const q = useExtendQuotes(estimate)
@@ -16,6 +18,7 @@ describe('useExtendQuotes', () => {
     expect(estimate).toHaveBeenCalledTimes(1)
   })
 
+  // Does not reuse a quote for a different amount.
   it('does not reuse a quote for a different amount', async () => {
     const q = useExtendQuotes(async (_s, epochs) => BigInt(epochs))
     await q.price('0xblob', 1, 10)
@@ -24,6 +27,7 @@ describe('useExtendQuotes', () => {
     expect(q.quoteFor('0xblob', 25)?.costFrost).toBe(25n)
   })
 
+  // Reports an unpriceable amount as unavailable, shown, and then lets the wallet decide.
   it('reports an unpriceable amount as unavailable, shown, and then lets the wallet decide', async () => {
     const q = useExtendQuotes(async () => null)
     expect(await q.shownBeforeSigning('0xblob', 1, 5)).toBe(false)
@@ -31,6 +35,7 @@ describe('useExtendQuotes', () => {
     expect(await q.shownBeforeSigning('0xblob', 1, 5)).toBe(true)
   })
 
+  // Treats a throwing estimator as unavailable.
   it('treats a throwing estimator as unavailable', async () => {
     const q = useExtendQuotes(async () => {
       throw new Error('rpc down')

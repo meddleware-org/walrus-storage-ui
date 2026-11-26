@@ -12,19 +12,24 @@ import {
   type EnvSource,
 } from '../src/config.js'
 
+// The tip ceiling: a default, and only valid positive values.
 describe('uploadRelayMaxTipMist', () => {
+  // Defaults when the env var is unset.
   it('defaults when the env var is unset', () => {
     expect(uploadRelayMaxTipMist({})).toBe(DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST)
   })
 
+  // Defaults to the workspace ceiling of 0.005 SUI (D2, re-derived under D57).
   it('defaults to the workspace ceiling of 0.005 SUI (D2, re-derived under D57)', () => {
     expect(DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST).toBe(5_000_000)
   })
 
+  // Uses a valid positive override.
   it('uses a valid positive override', () => {
     expect(uploadRelayMaxTipMist({ VITE_UPLOAD_RELAY_MAX_TIP_MIST: '1234567' })).toBe(1234567)
   })
 
+  // Falls back on non-positive or unparseable values.
   it('falls back on non-positive or unparseable values', () => {
     expect(uploadRelayMaxTipMist({ VITE_UPLOAD_RELAY_MAX_TIP_MIST: '0' })).toBe(
       DEFAULT_UPLOAD_RELAY_MAX_TIP_MIST,
@@ -35,7 +40,9 @@ describe('uploadRelayMaxTipMist', () => {
   })
 })
 
+// The relay hosts: the operator's and the public one, per network.
 describe('relayHosts', () => {
+  // Returns the public host as fallback for both operator and public when no operator env set.
   it('returns the public host as fallback for both operator and public when no operator env set', () => {
     const hosts = relayHosts('testnet')
     expect(hosts.public).toBe(PUBLIC_WALRUS_RELAY_HOSTS.testnet)
@@ -44,7 +51,9 @@ describe('relayHosts', () => {
   })
 })
 
+// The optional access gate: unset means ungated; a set one must be the published deployment.
 describe('accessGate', () => {
+  // Returns null when no gate object id is configured.
   it('returns null when no gate object id is configured', () => {
     expect(accessGate('testnet', {})).toBeNull()
   })
@@ -84,6 +93,7 @@ describe('accessGate', () => {
   })
 })
 
+// The kit's gate state accepts only a configuration this app produces.
 describe('accessGate with useAccessGate', () => {
   const getClient = () => {
     throw new Error('no chain read in this test')
@@ -109,6 +119,7 @@ describe('accessGate with useAccessGate', () => {
   })
 })
 
+// Which networks are offered, and why one is not.
 describe('availabilityOf', () => {
   // A gate id of the right shape; whether it is a gate is the chain's to say.
   const GATE = `0x${'a'.repeat(64)}`

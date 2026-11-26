@@ -4,19 +4,24 @@ import { describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import ExtendControl from '../src/components/ExtendControl.vue'
 
+// A certified blob that expires at epoch 580.
 const blob = { objectId: '0xblob', blobId: 'B'.repeat(43), size: 2048, startEpoch: 1, endEpoch: 580, certified: true, deletable: false }
 
+/** Mount the control with an estimator the test can replace. */
 function control(over: { max?: number; estimate?: (size: number, epochs: number) => Promise<bigint | null>; disabled?: boolean } = {}) {
   const estimate = vi.fn(over.estimate ?? (async (_size: number, epochs: number) => BigInt(epochs) * 1_000_000_000n))
   const wrapper = mount(ExtendControl, { props: { blob, max: over.max ?? 33, disabled: over.disabled ?? false, busy: false, estimate } })
   return { wrapper, estimate }
 }
+// press(w, name): click the button with that name and wait for the update.
 const press = async (w: ReturnType<typeof mount>, name: string) => {
   await w.findAll('button').find((b) => b.text() === name)!.trigger('click')
   await flushPromises()
 }
 
+// Clamping, pricing on the first press, extending on the second.
 describe('ExtendControl', () => {
+  // Starts at +10 and never above what can still be added.
   it('starts at +10 and never above what can still be added', () => {
     expect(control().wrapper.get('input').element.value).toBe('10')
     expect(control({ max: 4 }).wrapper.get('input').element.value).toBe('4')
