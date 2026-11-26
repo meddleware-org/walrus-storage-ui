@@ -161,6 +161,7 @@ describe('useOwnedBlobs stale-result guard', () => {
     expect(loading.value).toBe(false)
   })
 
+  // A same-account cache hit leaves a refresh that is in flight alone.
   it('a same-account cache hit leaves a refresh that is in flight alone', async () => {
     const { blobs, loadedFor, loading, load } = useOwnedBlobs()
     const first = load('0xa')
